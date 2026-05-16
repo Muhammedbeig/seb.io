@@ -76,6 +76,24 @@ export default async function RootLayout({
             --font-dm-mono: 'DM Mono', monospace;
           }
         `}} />
+        <script
+          id="mathjax-config"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.MathJax = {
+                tex: {
+                  inlineMath: [['\\\\(', '\\\\)'], ['$', '$']],
+                  displayMath: [['\\\\[', '\\\\]'], ['$$', '$$']],
+                  processEscapes: true
+                },
+                options: {
+                  skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+                },
+                startup: { typeset: false }
+              };
+            `,
+          }}
+        />
       </head>
       <body className="antialiased pb-14 md:pb-0">
         <RouteScrollReset />

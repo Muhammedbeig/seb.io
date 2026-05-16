@@ -328,6 +328,12 @@ body {
   line-height: 1.82;
 }
 
+.prose-custom p,
+.prose-custom blockquote,
+.prose-custom li {
+  text-align: justify;
+}
+
 .prose-custom strong,
 .prose-custom b,
 .prose-custom span[style*="font-weight: bold"] {
@@ -346,6 +352,82 @@ body {
   text-decoration: underline;
   text-decoration-color: rgba(184, 255, 53, 0.35);
   text-underline-offset: 3px;
+}
+
+.prose-custom .citation-cluster {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.15rem;
+  margin-left: 0.18rem;
+  vertical-align: super;
+}
+
+.prose-custom .citation-ref {
+  position: relative;
+  display: inline-flex;
+  color: #7AA7FF;
+  font-family: var(--font-dm-mono);
+  font-size: 0.68em;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.prose-custom .citation-ref sup {
+  line-height: 1;
+}
+
+.prose-custom .citation-ref:hover,
+.prose-custom .citation-ref:focus-visible {
+  color: var(--lime);
+}
+
+.prose-custom .citation-popover {
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.55rem);
+  z-index: 30;
+  display: none;
+  width: min(320px, 78vw);
+  transform: translateX(-50%);
+  border: 1px solid #C9CEDA;
+  background: #F7F8FB;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+  color: #1F2430;
+  font-family: Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.45;
+  padding: 0.72rem 0.82rem;
+  text-align: left;
+  white-space: normal;
+}
+
+.prose-custom .citation-popover::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: #F7F8FB;
+}
+
+.prose-custom .citation-popover-title {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #545B66;
+  font-family: var(--font-dm-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.prose-custom .citation-ref:hover .citation-popover,
+.prose-custom .citation-ref:focus-visible .citation-popover {
+  display: block;
 }
 
 .prose-custom h2,
@@ -466,6 +548,35 @@ body {
   border: 0;
   border-top: 1px solid var(--border);
   margin: 2rem 0;
+}
+
+.prose-custom .article-sources {
+  margin-top: 3rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}
+
+.prose-custom .article-sources ol {
+  counter-reset: source-list;
+  list-style: decimal outside !important;
+}
+
+.prose-custom .article-sources li {
+  padding-left: 0.15rem;
+  scroll-margin-top: 112px;
+}
+
+.prose-custom .article-sources p {
+  margin: 0.25rem 0 !important;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.prose-custom .citation-coverage-note {
+  border: 1px solid rgba(122, 167, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(122, 167, 255, 0.06);
+  padding: 0.85rem 1rem;
 }
 
 .custom-block {
@@ -594,11 +705,17 @@ body {
   color: #00FF88;
   font-family: var(--font-dm-mono);
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.block-equation::-webkit-scrollbar {
+  display: none;
+  height: 0;
 }
 
 .block-equation::before {
-  content: "FORMULA";
-  color: #00FF88;
+  content: "";
+  display: none;
 }
 
 .block-equation,
@@ -614,6 +731,55 @@ body {
 .block-equation p,
 .block-equation div {
   line-height: 1.8;
+}
+
+.block-equation mjx-container {
+  margin: 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0 !important;
+  scrollbar-width: none;
+}
+
+.block-equation mjx-container::-webkit-scrollbar {
+  display: none;
+  height: 0;
+}
+
+.custom-html-block {
+  margin: 2rem 0;
+  min-height: 160px;
+  border-radius: 8px;
+}
+
+.html-block-skeleton {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.html-block-skeleton span {
+  height: 18px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #141421 0%, #202033 50%, #141421 100%);
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.1s ease-in-out infinite;
+}
+
+.html-block-skeleton span:nth-child(2) {
+  width: 72%;
+}
+
+.html-block-skeleton span:nth-child(3) {
+  width: 46%;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
 }
 
 .prose-custom .formula-box,

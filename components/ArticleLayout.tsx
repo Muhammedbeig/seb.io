@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ArticleAttributeChips from "@/components/ArticleAttributeChips";
 import ArticleToc from "@/components/ArticleToc";
+import MathJaxLoader from "@/components/MathJaxLoader";
 import PageShell from "@/components/PageShell";
 import type { ArticleAttribute, ArticleFaq, ArticleSummary, Author } from "@/lib/cms";
 
@@ -153,7 +154,7 @@ function SeriesList({ articles, title }: { articles: SidebarArticle[]; title: st
         </h4>
         <div className="mt-3 h-0.5 w-full bg-[#B8FF35]" />
       </div>
-      <ul className="divide-y divide-[#1E1E30]">
+      <ul className={`divide-y divide-[#1E1E30] pr-1 ${articles.length > 3 ? "max-h-[15.25rem] overflow-y-auto" : ""}`}>
         {articles.map((post) => (
           <li key={post.href}>
             <Link
@@ -353,6 +354,7 @@ export default function ArticleLayout({
   return (
     <main>
       <FaqSchema faqs={faqs} />
+      <MathJaxLoader />
       <PageShell>
         <header className="pt-36 pb-12 relative overflow-hidden">
           <div className="absolute inset-0 grid-bg pointer-events-none" />

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import ArticleContent from "@/components/ArticleContent";
 import ArticleLayout from "@/components/ArticleLayout";
 import { getBlogArticle, getSeriesBySlug } from "@/lib/cms";
 
@@ -52,7 +53,7 @@ export default async function NestedArticlePage({ params }: PageProps) {
       editors={article.editors}
       faqs={article.faqs}
     >
-      <div dangerouslySetInnerHTML={{ __html: article.content }} />
+      <ArticleContent html={article.content} />
     </ArticleLayout>
   );
 }

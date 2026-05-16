@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
+import ArticleContent from "@/components/ArticleContent";
 import ArticleLayout from "@/components/ArticleLayout";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
 import PageShell from "@/components/PageShell";
@@ -179,7 +180,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
       editors={article.editors}
       faqs={article.faqs}
     >
-      <div dangerouslySetInnerHTML={{ __html: article.content }} />
+      <ArticleContent html={article.content} />
     </ArticleLayout>
   );
 }
