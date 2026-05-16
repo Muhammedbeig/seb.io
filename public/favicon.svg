@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" role="img" aria-label="Search Engine Basics">
+  <rect x="0.5" y="0.5" width="27" height="27" rx="4" fill="none" stroke="#B8FF35" stroke-opacity="0.8"/>
+  <rect x="3" y="3" width="22" height="22" rx="2" fill="#B8FF35"/>
+  <g transform="translate(8 8)" fill="none" stroke="#07070F" stroke-width="1.5">
+    <circle cx="4.5" cy="4.5" r="2.5"/>
+    <line x1="6.5" y1="6.5" x2="10" y2="10" stroke-linecap="round"/>
+  </g>
+</svg>
