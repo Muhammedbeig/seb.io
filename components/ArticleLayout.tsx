@@ -408,7 +408,7 @@ export default function ArticleLayout({
             </p>
 
             <div className="mt-4">
-              <ArticleAttributeChips attributes={attributes} />
+              <ArticleAttributeChips attributes={attributes} defaultExpanded />
             </div>
 
             <div className="flex items-center gap-5 mt-6 text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
