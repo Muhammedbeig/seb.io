@@ -112,7 +112,7 @@ export default async function FeaturedArticles() {
                       compact
                       minHeightClassName="min-h-[72px]"
                       titleClassName="text-sm font-bold text-[#E8E8F0] leading-snug group-hover:text-[#B8FF35] transition-colors duration-300 line-clamp-2"
-                      excerptClassName="mt-1 text-xs text-[#6B6B80] leading-relaxed line-clamp-1"
+                      excerptClassName="mt-1 text-xs text-[#6B6B80] leading-relaxed line-clamp-2"
                     />
                   </div>
                 </div>

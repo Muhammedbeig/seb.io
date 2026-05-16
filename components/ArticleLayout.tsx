@@ -477,7 +477,7 @@ export default function ArticleLayout({
               </div>
 
               <aside className="hidden lg:block lg:col-span-1">
-                <ArticleSidePanel toc={toc} articles={sidebarArticles} seriesTitle={relatedSeriesTitle} className="sticky top-24" />
+                <ArticleSidePanel toc={toc} articles={sidebarArticles} seriesTitle={relatedSeriesTitle} />
               </aside>
             </div>
           </div>
