@@ -76,6 +76,30 @@ export default function ArticleContent({ html }: ArticleContentProps) {
     if (!root) return;
 
     root.querySelectorAll<HTMLElement>(".custom-html-block[data-html-block]").forEach(mountHtmlBlock);
+
+    const handleCitationClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const link = target.closest<HTMLAnchorElement>('a.citation-ref[href^="#"]');
+      if (!link) return;
+
+      const sourceId = link.getAttribute("href")?.slice(1);
+      if (!sourceId) return;
+
+      const source = document.getElementById(decodeURIComponent(sourceId));
+      if (!source) return;
+
+      event.preventDefault();
+      source.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.pushState(null, "", `#${sourceId}`);
+    };
+
+    root.addEventListener("click", handleCitationClick);
+
+    return () => {
+      root.removeEventListener("click", handleCitationClick);
+    };
   }, [html]);
 
   return <div ref={rootRef} dangerouslySetInnerHTML={{ __html: html }} />;
