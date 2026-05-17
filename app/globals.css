@@ -756,6 +756,83 @@ body {
   border-radius: 8px;
 }
 
+.custom-html-block.is-ready {
+  min-height: 0;
+}
+
+.html-block-frame {
+  display: block;
+  width: 100%;
+  min-height: 220px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  overflow: hidden;
+}
+
+.html-block-error {
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  border-radius: 8px;
+  background: rgba(255, 107, 107, 0.08);
+  color: #FFB4B4;
+  font-family: var(--font-dm-mono);
+  font-size: 0.82rem;
+  padding: 1rem;
+}
+
+.prose-custom button.tab,
+.prose-custom .custom-html-block button.tab {
+  appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 2.35rem;
+  max-width: 100%;
+  margin: 0.25rem 0.35rem 0.25rem 0 !important;
+  border: 1px solid rgba(184, 255, 53, 0.24) !important;
+  border-radius: 999px !important;
+  background: rgba(15, 15, 26, 0.92) !important;
+  color: #B8B8CC !important;
+  cursor: pointer !important;
+  font-family: var(--font-dm-mono) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1.2 !important;
+  padding: 0.62rem 0.95rem !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease !important;
+  white-space: normal !important;
+}
+
+.prose-custom button.tab:hover,
+.prose-custom button.tab:focus-visible,
+.prose-custom .custom-html-block button.tab:hover,
+.prose-custom .custom-html-block button.tab:focus-visible {
+  border-color: rgba(184, 255, 53, 0.78) !important;
+  background: rgba(184, 255, 53, 0.1) !important;
+  color: #B8FF35 !important;
+  box-shadow: 0 0 0 3px rgba(184, 255, 53, 0.08) !important;
+  outline: none !important;
+  transform: translateY(-1px);
+}
+
+.prose-custom button.tab.active,
+.prose-custom button.tab[aria-selected="true"],
+.prose-custom .custom-html-block button.tab.active,
+.prose-custom .custom-html-block button.tab[aria-selected="true"] {
+  border-color: #B8FF35 !important;
+  background: #B8FF35 !important;
+  color: #07070F !important;
+  box-shadow: 0 10px 30px rgba(184, 255, 53, 0.16) !important;
+}
+
+.prose-custom button.tab:active,
+.prose-custom .custom-html-block button.tab:active {
+  transform: translateY(0);
+}
+
 .html-block-skeleton {
   display: grid;
   gap: 0.85rem;

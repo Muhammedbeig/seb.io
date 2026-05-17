@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Script from "next/script";
+import { usePathname } from "next/navigation";
 
 declare global {
   interface Window {
@@ -36,27 +37,38 @@ function asDisplayMath(rawText: string) {
 
 export default function MathJaxLoader() {
   const [loaded, setLoaded] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loaded || !window.MathJax?.typesetPromise) return;
 
-    const equationBlocks = Array.from(document.querySelectorAll(".prose-custom .block-equation"));
-    equationBlocks.forEach((block) => {
-      const element = block as HTMLElement;
-      if (element.dataset.mathjaxPrepared === "true" || element.querySelector("mjx-container")) return;
-      if (element.querySelector(".citation-cluster")) return;
+    const typesetEquations = () => {
+      const equationBlocks = Array.from(document.querySelectorAll(".prose-custom .block-equation"));
+      const preparedBlocks: Element[] = [];
 
-      const rawText = element.textContent || "";
-      if (!rawText.trim()) return;
+      equationBlocks.forEach((block) => {
+        const element = block as HTMLElement;
+        if (element.dataset.mathjaxPrepared === "true" || element.querySelector("mjx-container")) return;
+        if (element.querySelector(".citation-cluster")) return;
 
-      element.textContent = asDisplayMath(rawText);
-      element.dataset.mathjaxPrepared = "true";
-    });
+        const rawText = element.textContent || "";
+        if (!rawText.trim()) return;
 
-    if (equationBlocks.length > 0) {
-      window.MathJax.typesetPromise(equationBlocks).catch(() => undefined);
-    }
-  }, [loaded]);
+        element.textContent = asDisplayMath(rawText);
+        element.dataset.mathjaxPrepared = "true";
+        preparedBlocks.push(element);
+      });
+
+      if (preparedBlocks.length > 0) {
+        window.MathJax?.typesetPromise?.(preparedBlocks).catch(() => undefined);
+      }
+    };
+
+    typesetEquations();
+    const retry = window.setTimeout(typesetEquations, 250);
+
+    return () => window.clearTimeout(retry);
+  }, [loaded, pathname]);
 
   return (
     <Script

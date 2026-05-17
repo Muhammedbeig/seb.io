@@ -35,6 +35,160 @@ function skeletonMarkup() {
   `;
 }
 
+function iframeDocument(html: string) {
+  return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    color-scheme: dark;
+    --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "DM Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+    --color-background-primary: #07070F;
+    --color-background-secondary: #0F0F1A;
+    --color-background-info: rgba(184, 255, 53, 0.1);
+    --color-text-primary: #E8E8F0;
+    --color-text-secondary: #8E8EA8;
+    --color-text-info: #B8FF35;
+    --color-border-primary: #B8FF35;
+    --color-border-secondary: rgba(184, 255, 53, 0.55);
+    --color-border-tertiary: #1E1E30;
+    --color-border-info: #B8FF35;
+    --border-radius-md: 8px;
+    --border-radius-lg: 8px;
+  }
+  html {
+    background: transparent;
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    min-height: 0 !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+  }
+  body {
+    background: transparent;
+    margin: 0;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  button.tab,
+  .tab {
+    appearance: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 2.35rem;
+    max-width: 100%;
+    margin: 0.25rem 0.35rem 0.25rem 0 !important;
+    border: 1px solid rgba(184, 255, 53, 0.24) !important;
+    border-radius: 999px !important;
+    background: rgba(15, 15, 26, 0.92) !important;
+    color: #B8B8CC !important;
+    cursor: pointer !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.2 !important;
+    padding: 0.62rem 0.95rem !important;
+    text-align: center !important;
+    text-transform: uppercase !important;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease !important;
+    white-space: normal !important;
+  }
+  button.tab:hover,
+  button.tab:focus-visible,
+  .tab:hover,
+  .tab:focus-visible {
+    border-color: rgba(184, 255, 53, 0.78) !important;
+    background: rgba(184, 255, 53, 0.1) !important;
+    color: #B8FF35 !important;
+    box-shadow: 0 0 0 3px rgba(184, 255, 53, 0.08) !important;
+    outline: none !important;
+    transform: translateY(-1px);
+  }
+  button.tab.active,
+  button.tab[aria-selected="true"],
+  .tab.active,
+  .tab[aria-selected="true"] {
+    border-color: #B8FF35 !important;
+    background: #B8FF35 !important;
+    color: #07070F !important;
+    box-shadow: 0 10px 30px rgba(184, 255, 53, 0.16) !important;
+  }
+</style>
+</head>
+<body>
+${html}
+<script>
+(() => {
+  const measureHeight = () => {
+    const body = document.body;
+    if (!body) return 220;
+
+    const bodyRect = body.getBoundingClientRect();
+    const bodyStyle = getComputedStyle(body);
+    const bottomPadding = Number.parseFloat(bodyStyle.paddingBottom) || 0;
+    let contentBottom = 0;
+
+    Array.from(body.children).forEach((child) => {
+      const rect = child.getBoundingClientRect();
+      const style = getComputedStyle(child);
+      const marginBottom = Number.parseFloat(style.marginBottom) || 0;
+      if (rect.width > 0 || rect.height > 0) {
+        contentBottom = Math.max(contentBottom, rect.bottom - bodyRect.top + marginBottom);
+      }
+    });
+
+    return Math.ceil(Math.max(contentBottom + bottomPadding, 220)) + 2;
+  };
+  const sendHeight = () => {
+    const height = measureHeight();
+    parent.postMessage({ type: "seb-html-block-height", height }, "*");
+  };
+  const scheduleHeight = () => {
+    requestAnimationFrame(sendHeight);
+    setTimeout(sendHeight, 80);
+    setTimeout(sendHeight, 240);
+    setTimeout(sendHeight, 600);
+  };
+  window.addEventListener("load", scheduleHeight);
+  window.addEventListener("resize", scheduleHeight);
+  document.addEventListener("click", scheduleHeight, true);
+  document.addEventListener("input", scheduleHeight, true);
+  document.addEventListener("change", scheduleHeight, true);
+  document.addEventListener("transitionend", scheduleHeight, true);
+  document.addEventListener("animationend", scheduleHeight, true);
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(scheduleHeight);
+    observer.observe(document.documentElement);
+    if (document.body) observer.observe(document.body);
+  }
+  if ("MutationObserver" in window) {
+    new MutationObserver(scheduleHeight).observe(document.documentElement, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+  }
+  scheduleHeight();
+  setTimeout(scheduleHeight, 1200);
+})();
+</script>
+</body>
+</html>`;
+}
+
 function mountHtmlBlock(block: HTMLElement) {
   if (block.dataset.htmlBlockMounted === "true") return;
   block.dataset.htmlBlockMounted = "true";
@@ -46,25 +200,26 @@ function mountHtmlBlock(block: HTMLElement) {
   block.classList.add("is-loading");
 
   runWhenIdle(() => {
-    const html = decodeBlockPayload(encoded);
-    const template = document.createElement("template");
-    template.innerHTML = html;
+    let html = "";
+    try {
+      html = decodeBlockPayload(encoded);
+    } catch {
+      block.innerHTML = '<div class="html-block-error">HTML block could not be loaded.</div>';
+      block.classList.remove("is-loading");
+      return;
+    }
 
-    const scripts = Array.from(template.content.querySelectorAll("script"));
-    scripts.forEach((script) => script.remove());
+    const iframe = document.createElement("iframe");
+    iframe.className = "html-block-frame";
+    iframe.title = block.getAttribute("aria-label") || block.getAttribute("title") || "Html Block";
+    iframe.loading = "lazy";
+    iframe.scrolling = "no";
+    iframe.setAttribute("sandbox", "allow-scripts");
+    iframe.srcdoc = iframeDocument(html);
 
-    block.replaceChildren(template.content.cloneNode(true));
+    block.replaceChildren(iframe);
     block.classList.remove("is-loading");
     block.classList.add("is-ready");
-
-    scripts.forEach((oldScript) => {
-      const script = document.createElement("script");
-      Array.from(oldScript.attributes).forEach((attribute) => {
-        script.setAttribute(attribute.name, attribute.value);
-      });
-      script.text = oldScript.textContent || "";
-      block.appendChild(script);
-    });
   });
 }
 
@@ -76,6 +231,18 @@ export default function ArticleContent({ html }: ArticleContentProps) {
     if (!root) return;
 
     root.querySelectorAll<HTMLElement>(".custom-html-block[data-html-block]").forEach(mountHtmlBlock);
+
+    const handleHtmlBlockMessage = (event: MessageEvent) => {
+      if (!event.data || event.data.type !== "seb-html-block-height") return;
+
+      const iframes = root.querySelectorAll<HTMLIFrameElement>(".html-block-frame");
+      iframes.forEach((iframe) => {
+        if (iframe.contentWindow === event.source) {
+          const nextHeight = Math.min(Math.max(Number(event.data.height) || 220, 220), 1800);
+          iframe.style.height = `${nextHeight}px`;
+        }
+      });
+    };
 
     const handleCitationClick = (event: MouseEvent) => {
       const target = event.target;
@@ -95,9 +262,11 @@ export default function ArticleContent({ html }: ArticleContentProps) {
       window.history.pushState(null, "", `#${sourceId}`);
     };
 
+    window.addEventListener("message", handleHtmlBlockMessage);
     root.addEventListener("click", handleCitationClick);
 
     return () => {
+      window.removeEventListener("message", handleHtmlBlockMessage);
       root.removeEventListener("click", handleCitationClick);
     };
   }, [html]);
