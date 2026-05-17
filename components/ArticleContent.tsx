@@ -125,6 +125,142 @@ function iframeDocument(html: string) {
     color: #07070F !important;
     box-shadow: 0 10px 30px rgba(184, 255, 53, 0.16) !important;
   }
+  svg .arr {
+    stroke: rgba(184, 255, 53, 0.5);
+    stroke-width: 1;
+  }
+  svg .node rect {
+    fill: rgba(15, 15, 26, 0.94);
+    stroke: rgba(184, 255, 53, 0.35);
+  }
+  svg .node .th {
+    fill: #E8E8F0;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  svg .node .ts {
+    fill: #A8A8BE;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  svg .node.c-teal rect,
+  svg .node.c-green rect {
+    fill: #E1F5EE;
+    stroke: #5DCAA5;
+  }
+  svg .node.c-purple rect,
+  svg .node.c-violet rect {
+    fill: #EEE9FF;
+    stroke: #8B6CFF;
+  }
+  svg .node.c-coral rect,
+  svg .node.c-orange rect {
+    fill: #FAECE7;
+    stroke: #FF7A45;
+  }
+  svg .node.c-blue rect {
+    fill: #E6F1FB;
+    stroke: #185FA5;
+  }
+  svg .node.c-lime rect {
+    fill: #EAF3DE;
+    stroke: #7FB02E;
+  }
+  svg .node-circle.c-teal circle,
+  svg g.c-teal > circle,
+  svg .node-circle.c-green circle,
+  svg g.c-green > circle {
+    fill: #E1F5EE;
+    stroke: #5DCAA5;
+  }
+  svg .node-circle.c-purple circle,
+  svg g.c-purple > circle,
+  svg .node-circle.c-violet circle,
+  svg g.c-violet > circle {
+    fill: #EEE9FF;
+    stroke: #8B6CFF;
+  }
+  svg .node-circle.c-coral circle,
+  svg g.c-coral > circle,
+  svg .node-circle.c-orange circle,
+  svg g.c-orange > circle {
+    fill: #FAECE7;
+    stroke: #FF7A45;
+  }
+  svg .node-circle.c-blue circle,
+  svg g.c-blue > circle {
+    fill: #E6F1FB;
+    stroke: #185FA5;
+  }
+  svg .node-circle.c-lime circle,
+  svg g.c-lime > circle {
+    fill: #EAF3DE;
+    stroke: #7FB02E;
+  }
+  svg .node.c-teal .th,
+  svg .node.c-green .th,
+  svg .node.c-purple .th,
+  svg .node.c-violet .th,
+  svg .node.c-coral .th,
+  svg .node.c-orange .th,
+  svg .node.c-blue .th,
+  svg .node.c-lime .th {
+    fill: #171724;
+  }
+  svg .node-circle.c-teal .th,
+  svg .node-circle.c-green .th,
+  svg .node-circle.c-purple .th,
+  svg .node-circle.c-violet .th,
+  svg .node-circle.c-coral .th,
+  svg .node-circle.c-orange .th,
+  svg .node-circle.c-blue .th,
+  svg .node-circle.c-lime .th,
+  svg g.c-teal > .th,
+  svg g.c-green > .th,
+  svg g.c-purple > .th,
+  svg g.c-violet > .th,
+  svg g.c-coral > .th,
+  svg g.c-orange > .th,
+  svg g.c-blue > .th,
+  svg g.c-lime > .th {
+    fill: #171724;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  svg .node.c-teal .ts,
+  svg .node.c-green .ts,
+  svg .node.c-purple .ts,
+  svg .node.c-violet .ts,
+  svg .node.c-coral .ts,
+  svg .node.c-orange .ts,
+  svg .node.c-blue .ts,
+  svg .node.c-lime .ts {
+    fill: #3C3C52;
+  }
+  svg .node-circle.c-teal .ts,
+  svg .node-circle.c-green .ts,
+  svg .node-circle.c-purple .ts,
+  svg .node-circle.c-violet .ts,
+  svg .node-circle.c-coral .ts,
+  svg .node-circle.c-orange .ts,
+  svg .node-circle.c-blue .ts,
+  svg .node-circle.c-lime .ts,
+  svg g.c-teal > .ts,
+  svg g.c-green > .ts,
+  svg g.c-purple > .ts,
+  svg g.c-violet > .ts,
+  svg g.c-coral > .ts,
+  svg g.c-orange > .ts,
+  svg g.c-blue > .ts,
+  svg g.c-lime > .ts {
+    fill: #3C3C52;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>

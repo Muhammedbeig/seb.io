@@ -750,6 +750,30 @@ body {
   height: 0;
 }
 
+.block-equation:not([data-mathjax-prepared="true"]) {
+  position: relative;
+  min-height: 92px;
+  color: transparent !important;
+}
+
+.block-equation:not([data-mathjax-prepared="true"]) * {
+  color: transparent !important;
+}
+
+.block-equation:not([data-mathjax-prepared="true"])::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(70%, 420px);
+  height: 18px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(0, 255, 136, 0.12) 0%, rgba(0, 255, 136, 0.36) 50%, rgba(0, 255, 136, 0.12) 100%);
+  background-size: 220% 100%;
+  transform: translate(-50%, -50%);
+  animation: skeleton-shimmer 1.1s ease-in-out infinite;
+}
+
 .custom-html-block {
   margin: 2rem 0;
   min-height: 160px;
