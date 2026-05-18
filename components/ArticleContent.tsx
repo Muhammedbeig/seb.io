@@ -64,21 +64,49 @@ function iframeDocument(html: string) {
     color: var(--color-text-primary);
     font-family: var(--font-sans);
     min-height: 0 !important;
-    overflow: hidden !important;
-    scrollbar-width: none !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain;
+    scrollbar-color: rgba(184, 255, 53, 0.45) transparent;
+    scrollbar-width: thin;
   }
   body {
     background: transparent;
     margin: 0;
     min-height: 0 !important;
-    overflow: hidden !important;
-    scrollbar-width: none !important;
+    overflow-x: visible !important;
+    overflow-y: hidden !important;
   }
-  html::-webkit-scrollbar,
+  html::-webkit-scrollbar {
+    height: 8px;
+    width: 0;
+  }
+  html::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  html::-webkit-scrollbar-thumb {
+    background: rgba(184, 255, 53, 0.45);
+    border-radius: 999px;
+  }
   body::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
+    display: none;
+  }
+  .doc-slot[draggable="true"],
+  [data-list-key][data-idx] {
+    touch-action: none;
+  }
+  .touch-dragging {
+    opacity: 0.65;
+  }
+  .touch-drop-target {
+    outline: 2px solid rgba(184, 255, 53, 0.72) !important;
+    outline-offset: 2px;
+  }
+  @media (max-width: 640px) {
+    [style*="grid-template-columns:1fr 1fr 1fr"],
+    [style*="grid-template-columns: 1fr 1fr 1fr"] {
+      min-width: 680px !important;
+    }
   }
   button.tab,
   .tab {
@@ -317,6 +345,126 @@ ${html}
       subtree: true
     });
   }
+
+  const installTouchSortable = () => {
+    let dragState = null;
+    let activeTarget = null;
+
+    const rows = () => Array.from(document.querySelectorAll(".doc-slot[data-list-key][data-idx], [data-list-key][data-idx]"));
+    const setTarget = (target) => {
+      if (activeTarget === target) return;
+      rows().forEach((row) => row.classList.remove("touch-drop-target"));
+      activeTarget = target;
+      if (activeTarget) activeTarget.classList.add("touch-drop-target");
+    };
+    const clearTarget = () => {
+      rows().forEach((row) => row.classList.remove("touch-drop-target", "touch-dragging"));
+      activeTarget = null;
+    };
+    const currentState = () => {
+      try {
+        return typeof state !== "undefined" ? state : null;
+      } catch {
+        return null;
+      }
+    };
+    const refresh = () => {
+      try {
+        if (typeof refreshAll === "function") refreshAll();
+      } catch {}
+    };
+    const rowAtPoint = (x, y, listKey) => {
+      const element = document.elementFromPoint(x, y);
+      const row = element && element.closest ? element.closest(".doc-slot[data-list-key][data-idx], [data-list-key][data-idx]") : null;
+      return row && row.dataset.listKey === listKey ? row : null;
+    };
+
+    document.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse") return;
+
+      const row = event.target && event.target.closest ? event.target.closest(".doc-slot[data-list-key][data-idx], [data-list-key][data-idx]") : null;
+      if (!row || row.getAttribute("draggable") === "false") return;
+
+      const sourceState = currentState();
+      const listKey = row.dataset.listKey;
+      const index = Number(row.dataset.idx);
+      if (!sourceState || !listKey || !Array.isArray(sourceState[listKey]) || !Number.isFinite(index)) return;
+
+      dragState = { pointerId: event.pointerId, listKey, index, source: row };
+      row.classList.add("touch-dragging");
+      try {
+        row.setPointerCapture(event.pointerId);
+      } catch {}
+      event.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener("pointermove", (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+      setTarget(rowAtPoint(event.clientX, event.clientY, dragState.listKey));
+      event.preventDefault();
+    }, { passive: false });
+
+    const finishDrag = (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+      const sourceState = currentState();
+      const target = activeTarget || rowAtPoint(event.clientX, event.clientY, dragState.listKey);
+      const toIndex = target ? Number(target.dataset.idx) : NaN;
+      let handledByNativeDrag = false;
+
+      if (dragState.source && target) {
+        try {
+          const dataTransfer = new DataTransfer();
+          dragState.source.dispatchEvent(new DragEvent("dragstart", {
+            bubbles: true,
+            cancelable: true,
+            dataTransfer,
+          }));
+          target.dispatchEvent(new DragEvent("dragover", {
+            bubbles: true,
+            cancelable: true,
+            dataTransfer,
+            clientX: event.clientX,
+            clientY: event.clientY,
+          }));
+          handledByNativeDrag = !target.dispatchEvent(new DragEvent("drop", {
+            bubbles: true,
+            cancelable: true,
+            dataTransfer,
+            clientX: event.clientX,
+            clientY: event.clientY,
+          }));
+        } catch {}
+      }
+
+      if (
+        !handledByNativeDrag &&
+        sourceState &&
+        Array.isArray(sourceState[dragState.listKey]) &&
+        Number.isFinite(toIndex) &&
+        toIndex !== dragState.index
+      ) {
+        const list = sourceState[dragState.listKey];
+        const [moved] = list.splice(dragState.index, 1);
+        list.splice(toIndex, 0, moved);
+        refresh();
+      }
+
+      dragState = null;
+      clearTarget();
+      scheduleHeight();
+      event.preventDefault();
+    };
+
+    document.addEventListener("pointerup", finishDrag, { passive: false });
+    document.addEventListener("pointercancel", (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+      dragState = null;
+      clearTarget();
+    }, { passive: false });
+  };
+
+  installTouchSortable();
   scheduleHeight();
   setTimeout(scheduleHeight, 1200);
 })();
@@ -349,7 +497,7 @@ function mountHtmlBlock(block: HTMLElement) {
     iframe.className = "html-block-frame";
     iframe.title = block.getAttribute("aria-label") || block.getAttribute("title") || "Html Block";
     iframe.loading = "lazy";
-    iframe.scrolling = "no";
+    iframe.scrolling = "auto";
     iframe.setAttribute("sandbox", "allow-scripts");
     iframe.srcdoc = iframeDocument(html);
 

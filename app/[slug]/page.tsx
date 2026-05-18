@@ -68,7 +68,14 @@ export default async function DynamicSlugPage({ params }: PageProps) {
             <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-8">
               <div className="grid gap-10 lg:grid-cols-[1fr_360px] lg:items-end">
                 <div>
-                  <span className="tag">Series</span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="tag">Series</span>
+                    {series.isComingSoon && (
+                      <span className="rounded-full border border-[#B8FF35]/35 bg-[#B8FF35]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#B8FF35]" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                        Coming Soon
+                      </span>
+                    )}
+                  </div>
                   <h1
                     className="mt-5 text-[#E8E8F0] leading-tight"
                     style={{
@@ -85,7 +92,9 @@ export default async function DynamicSlugPage({ params }: PageProps) {
                     </p>
                   )}
                   <p className="mt-4 text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
-                    {series.articles.length} articles in this series
+                    {series.isComingSoon && series.articles.length === 0
+                      ? "Articles are being prepared"
+                      : `${series.articles.length} articles in this series`}
                   </p>
                 </div>
 
@@ -111,7 +120,16 @@ export default async function DynamicSlugPage({ params }: PageProps) {
 
           <section className="pb-24 pt-10">
             <div className="max-w-6xl mx-auto px-6 lg:px-8">
-              {series.articles.length === 0 ? (
+              {series.isComingSoon && series.articles.length === 0 ? (
+                <div className="rounded-lg border border-[#1E1E30] p-6" style={{ background: "var(--card)" }}>
+                  <p className="text-sm font-semibold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
+                    Coming Soon
+                  </p>
+                  <p className="mt-2 text-sm text-[#6B6B80]">
+                    This series is visible now, and articles will appear here when they are published.
+                  </p>
+                </div>
+              ) : series.articles.length === 0 ? (
                 <p className="text-[#6B6B80]">No articles are available in this series yet.</p>
               ) : (
                 <div className="overflow-hidden rounded-lg border border-[#1E1E30]">
@@ -168,6 +186,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
       title={article.title}
       excerpt={article.excerpt}
       date={article.date}
+      updatedOn={article.updatedOn}
       readTime={article.readTime}
       relatedPosts={article.relatedPosts}
       seriesArticles={article.seriesArticles}
@@ -175,6 +194,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
       toc={article.toc}
       attributes={article.attributes}
       author={article.author}
+      updatedBy={article.updatedBy}
       additionalAuthors={article.additionalAuthors}
       reviewers={article.reviewers}
       editors={article.editors}

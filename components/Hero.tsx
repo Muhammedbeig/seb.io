@@ -104,19 +104,19 @@ export default function Hero() {
                 fontSize: "clamp(3rem, 7vw, 5.5rem)",
               }}
             >
-              <span className="animate-fade-up animate-delay-2 block text-[#E8E8F0]">
+              <span className="hero-word animate-fade-up animate-delay-2 block text-[#E8E8F0]">
                 READ HOW
               </span>
-              <span className="animate-fade-up animate-delay-3 block text-stroke">
+              <span className="hero-word animate-fade-up animate-delay-3 block text-stroke">
                 SEARCH
               </span>
-              <span className="animate-fade-up animate-delay-3 block text-stroke">
+              <span className="hero-word animate-fade-up animate-delay-3 block text-stroke">
                 ENGINES
               </span>
-              <span className="animate-fade-up animate-delay-4 block text-[#E8E8F0]">
+              <span className="hero-word animate-fade-up animate-delay-4 block text-[#E8E8F0]">
                 ACTUALLY
               </span>
-              <span className="animate-fade-up animate-delay-4 block gradient-text">
+              <span className="hero-word animate-fade-up animate-delay-4 block gradient-text">
                 WORK.
               </span>
             </h1>

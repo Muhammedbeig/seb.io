@@ -34,11 +34,13 @@ interface ArticleLayoutProps {
   title: string;
   excerpt: string;
   date: string;
+  updatedOn?: string | null;
   readTime: string;
   children: React.ReactNode;
   toc?: TocItem[];
   attributes?: ArticleAttribute[];
   author?: Author;
+  updatedBy?: Author | null;
   additionalAuthors?: Author[];
   reviewers?: Author[];
   editors?: Author[];
@@ -310,11 +312,13 @@ export default function ArticleLayout({
   title,
   excerpt,
   date,
+  updatedOn,
   readTime,
   children,
   toc = [],
   attributes = [],
   author,
+  updatedBy,
   additionalAuthors = [],
   reviewers = [],
   editors = [],
@@ -418,6 +422,20 @@ export default function ArticleLayout({
               <span>.</span>
               <span>{readTime} read</span>
             </div>
+            {(updatedOn || updatedBy) && (
+              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                {updatedOn && (
+                  <span>
+                    <span className="text-[#8F8FA3]">Updated on:</span> {updatedOn}
+                  </span>
+                )}
+                {updatedBy && (
+                  <span>
+                    <span className="text-[#8F8FA3]">Updated by:</span> {updatedBy.name}
+                  </span>
+                )}
+              </div>
+            )}
 
             <div className="mt-8 h-px w-full" style={{ background: `linear-gradient(90deg, ${tagColor}50, transparent)` }} />
           </div>

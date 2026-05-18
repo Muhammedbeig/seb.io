@@ -61,9 +61,14 @@ export default async function CoreSeries() {
                     <h3 className="text-lg font-bold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
                       {series.title}
                     </h3>
+                    {series.isComingSoon && (
+                      <span className="rounded-full border border-[#B8FF35]/35 bg-[#B8FF35]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#B8FF35]" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
                   <span className="text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
-                    {series.articles.length} articles
+                    {series.isComingSoon && series.articles.length === 0 ? "Coming soon" : `${series.articles.length} articles`}
                   </span>
                 </Link>
 
@@ -74,7 +79,11 @@ export default async function CoreSeries() {
                 )}
 
                 <div>
-                  {series.articles.map((article, articleIndex) => (
+                  {series.isComingSoon && series.articles.length === 0 ? (
+                    <div className="px-4 py-5 text-sm text-[#6B6B80]">
+                      Articles will appear here when this series is ready.
+                    </div>
+                  ) : series.articles.map((article, articleIndex) => (
                     <Link
                       key={article.slug}
                       href={article.href || `/${article.slug}`}

@@ -40,6 +40,7 @@ export default async function NestedArticlePage({ params }: PageProps) {
       title={article.title}
       excerpt={article.excerpt}
       date={article.date}
+      updatedOn={article.updatedOn}
       readTime={article.readTime}
       relatedPosts={article.relatedPosts}
       seriesArticles={article.seriesArticles}
@@ -48,6 +49,7 @@ export default async function NestedArticlePage({ params }: PageProps) {
       toc={article.toc}
       attributes={article.attributes}
       author={article.author}
+      updatedBy={article.updatedBy}
       additionalAuthors={article.additionalAuthors}
       reviewers={article.reviewers}
       editors={article.editors}

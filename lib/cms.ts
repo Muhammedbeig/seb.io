@@ -17,6 +17,7 @@ export type BlogSummary = {
   slug: string;
   readTime: string;
   date: string;
+  updatedOn?: string | null;
   accent: string;
   featured?: boolean;
   isFeatured?: boolean;
@@ -49,6 +50,7 @@ export type BlogArticle = BlogSummary & {
   metaTitle?: string | null;
   metaDescription?: string | null;
   author?: Author;
+  updatedBy?: Author | null;
   additionalAuthors?: Author[];
   reviewers?: Author[];
   editors?: Author[];
@@ -254,6 +256,7 @@ function normalizeBlog(input: Partial<BlogSummary> & { isFeatured?: boolean }): 
     slug,
     readTime: input.readTime || "5 min",
     date: input.date || "",
+    updatedOn: typeof input.updatedOn === "string" ? input.updatedOn : null,
     accent: input.accent || "#B8FF35",
     featured: input.featured ?? input.isFeatured ?? false,
     isFeatured: input.isFeatured ?? input.featured ?? false,
@@ -370,6 +373,7 @@ export async function getBlogArticle(slug: string): Promise<BlogArticle | null> 
       content,
       toc,
       author: response.data.author,
+      updatedBy: response.data.updatedBy,
       additionalAuthors: response.data.additionalAuthors,
       reviewers: response.data.reviewers,
       editors: response.data.editors,
@@ -435,6 +439,8 @@ export type Series = {
   mobile_nav_order?: number;
   meta_title?: string;
   meta_description?: string;
+  isComingSoon?: boolean;
+  is_coming_soon?: boolean;
   articles: ArticleSummary[];
 };
 
@@ -444,6 +450,7 @@ export async function getSeries(): Promise<Series[]> {
     return response.data.map((series) => ({
       ...series,
       accent: series.accent || "#B8FF35",
+      isComingSoon: Boolean(series.isComingSoon ?? series.is_coming_soon),
       articles: Array.isArray(series.articles)
         ? series.articles.map((article) => normalizeArticleSummary({ ...article, categorySlug: series.slug }))
         : [],
@@ -458,6 +465,7 @@ export async function getSeriesBySlug(slug: string): Promise<Series | null> {
     return {
       ...response.data,
       accent: response.data.accent || "#B8FF35",
+      isComingSoon: Boolean(response.data.isComingSoon ?? response.data.is_coming_soon),
       articles: Array.isArray(response.data.articles)
         ? response.data.articles.map((article) => normalizeArticleSummary({ ...article, categorySlug: response.data!.slug }))
         : [],

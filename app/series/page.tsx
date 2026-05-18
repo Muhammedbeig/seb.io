@@ -55,6 +55,11 @@ export default async function SeriesPage() {
                           <h2 className="text-2xl font-bold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
                             {seriesItem.title}
                           </h2>
+                          {seriesItem.isComingSoon && (
+                            <span className="rounded-full border border-[#B8FF35]/35 bg-[#B8FF35]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#B8FF35]" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                              Coming Soon
+                            </span>
+                          )}
                         </div>
                         {seriesItem.description && (
                           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-[#8F8FA3]">
@@ -68,7 +73,11 @@ export default async function SeriesPage() {
                     </div>
                   </div>
 
-                  {seriesItem.articles.map((article, articleIndex) => (
+                  {seriesItem.isComingSoon && seriesItem.articles.length === 0 ? (
+                    <div className="px-4 py-5 text-sm text-[#6B6B80]">
+                      Articles will appear here when this series is ready.
+                    </div>
+                  ) : seriesItem.articles.map((article, articleIndex) => (
                     <Link
                       key={article.slug}
                       href={article.href || `/${article.slug}`}

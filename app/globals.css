@@ -87,8 +87,8 @@ body {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-12px); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%       { transform: translate3d(0, -12px, 0); }
 }
 
 @keyframes grid-pulse {
@@ -106,12 +106,21 @@ body {
 .animate-delay-4 { animation-delay: 0.5s; opacity: 0; }
 .animate-delay-5 { animation-delay: 0.65s; opacity: 0; }
 
+.hero-word {
+  display: block;
+}
+
 .ticker-track {
   animation: ticker 28s linear infinite;
 }
 
 .float-anim {
   animation: float 5s ease-in-out infinite;
+  backface-visibility: hidden;
+  contain: layout paint;
+  isolation: isolate;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .spin-slow-anim {
