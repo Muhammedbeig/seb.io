@@ -81,7 +81,7 @@ export default function ArticlePeekCard({
       <div className={minHeightClassName || (compact ? "min-h-[78px]" : "min-h-[104px]")}>
         <h3
           aria-label={title}
-          className={`${titleClasses} line-clamp-2 min-h-[2.7em]`}
+          className={`${titleClasses} line-clamp-2 h-[2.75em] overflow-hidden`}
           style={{ fontFamily: "var(--font-syne)" }}
         >
           {animatedTitle}

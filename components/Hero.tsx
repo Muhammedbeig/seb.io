@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { postPanelApi } from "@/lib/panel-client";
 
 const searchQueries = [
   "how do search engines work",
@@ -217,28 +216,50 @@ export default function Hero() {
                 </span>
               </div>
 
-              <div className="space-y-3">
-                {showResults && (
-                  <p className="text-xs text-[#6B6B80] px-1 mb-2" style={{ fontFamily: "var(--font-mono)" }}>
-                    About 4,120,000 results (0.42 seconds)
-                  </p>
-                )}
-                {snippetResults.slice(0, resultCount).map((result, i) => (
+              <div className="hero-search-results space-y-3">
+                <p
+                  className={`text-xs text-[#6B6B80] px-1 mb-2 transition-opacity duration-200 ${
+                    showResults ? "opacity-100" : "opacity-0"
+                  }`}
+                  style={{ fontFamily: "var(--font-mono)" }}
+                >
+                  About 4,120,000 results (0.42 seconds)
+                </p>
+
+                {snippetResults.map((result, i) => {
+                  const isVisible = showResults && i < resultCount;
+
+                  return (
                   <div
                     key={i}
-                    className="snippet-card"
-                    style={{ animation: "fadeUp 0.4s ease forwards" }}
+                    className={`snippet-card ${isVisible ? "" : "snippet-card-placeholder"}`}
+                    style={isVisible ? { animation: "fadeUp 0.4s ease forwards" } : undefined}
+                    aria-hidden={!isVisible}
                   >
-                    <p className="snippet-url">{result.url}</p>
-                    <p className="snippet-title">{result.title}</p>
-                    <p className="snippet-desc">{result.desc}</p>
+                    {isVisible ? (
+                      <>
+                        <p className="snippet-url">{result.url}</p>
+                        <p className="snippet-title">{result.title}</p>
+                        <p className="snippet-desc">{result.desc}</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="snippet-placeholder-copy">
+                          <p className="snippet-url">{result.url}</p>
+                          <p className="snippet-title">{result.title}</p>
+                          <p className="snippet-desc">{result.desc}</p>
+                        </div>
+                        <div className="snippet-placeholder-skeleton">
+                          <span className="snippet-skeleton-line snippet-skeleton-url" />
+                          <span className="snippet-skeleton-line snippet-skeleton-title" />
+                          <span className="snippet-skeleton-line snippet-skeleton-desc" />
+                          <span className="snippet-skeleton-line snippet-skeleton-desc short" />
+                        </div>
+                      </>
+                    )}
                   </div>
-                ))}
-                {!showResults && (
-                  <div className="text-center py-6 text-[#2A2A3F] text-xs" style={{ fontFamily: "var(--font-mono)" }}>
-                    searching...
-                  </div>
-                )}
+                  );
+                })}
               </div>
 
               <div className="mt-4 pt-4 border-t border-[#1E1E30] flex items-center gap-2">

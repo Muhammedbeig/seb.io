@@ -295,6 +295,7 @@ body {
   padding: 16px 20px;
   background: var(--surface);
   position: relative;
+  min-height: 132px;
 }
 
 .snippet-card .snippet-url {
@@ -314,6 +315,57 @@ body {
   color: var(--muted);
   font-size: 0.85rem;
   line-height: 1.5;
+}
+
+.snippet-card-placeholder {
+  overflow: hidden;
+}
+
+.snippet-placeholder-copy {
+  visibility: hidden;
+}
+
+.snippet-placeholder-skeleton {
+  position: absolute;
+  inset: 16px 20px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.snippet-skeleton-line {
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #141421 0%, #202033 50%, #141421 100%);
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.1s ease-in-out infinite;
+}
+
+.snippet-skeleton-url {
+  width: 54%;
+  height: 10px;
+}
+
+.snippet-skeleton-title {
+  width: 78%;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.snippet-skeleton-desc {
+  width: 100%;
+}
+
+.snippet-skeleton-desc.short {
+  width: 68%;
+}
+
+@media (max-width: 640px) {
+  .snippet-card {
+    min-height: 174px;
+  }
 }
 
 /* ─── Custom Rich Text Blocks ─── */
