@@ -71,7 +71,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="tag">Series</span>
                     {series.isComingSoon && (
-                      <span className="rounded-full border border-[#B8FF35]/35 bg-[#B8FF35]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#B8FF35]" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                      <span className="tag tag-cyan">
                         Coming Soon
                       </span>
                     )}
@@ -122,7 +122,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
             <div className="max-w-6xl mx-auto px-6 lg:px-8">
               {series.isComingSoon && series.articles.length === 0 ? (
                 <div className="rounded-lg border border-[#1E1E30] p-6" style={{ background: "var(--card)" }}>
-                  <p className="text-sm font-semibold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
+                  <p className="text-sm font-semibold text-[#05e1f5]" style={{ fontFamily: "var(--font-dm-mono)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     Coming Soon
                   </p>
                   <p className="mt-2 text-sm text-[#6B6B80]">

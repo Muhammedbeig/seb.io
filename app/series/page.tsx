@@ -56,7 +56,7 @@ export default async function SeriesPage() {
                             {seriesItem.title}
                           </h2>
                           {seriesItem.isComingSoon && (
-                            <span className="rounded-full border border-[#B8FF35]/35 bg-[#B8FF35]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#B8FF35]" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                            <span className="tag tag-cyan">
                               Coming Soon
                             </span>
                           )}
