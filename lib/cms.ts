@@ -6,6 +6,11 @@ export type Author = {
   bio?: string;
   avatar?: string;
   avatar_url?: string;
+  website_url?: string;
+  social_links?: Record<string, string>;
+  blogs_count?: number;
+  articles?: BlogSummary[];
+  status?: boolean;
 };
 
 export type BlogSummary = {
@@ -58,6 +63,25 @@ export type BlogArticle = BlogSummary & {
   relatedPosts?: Array<{ title: string; href: string; tag: string; tagColor: string; isCurrent?: boolean }>;
   seriesArticles?: ArticleSummary[];
   faqs?: ArticleFaq[];
+  shareLinks?: ShareLinks;
+};
+
+export type SharePlatform = "facebook" | "instagram" | "tiktok" | "whatsapp";
+
+export type ShareLinks = Partial<Record<SharePlatform, {
+  shortUrl: string;
+  targetUrl: string;
+}>>;
+
+export type SiteSettings = {
+  brand_name?: string;
+  domain?: string;
+  site_url?: string;
+  contact_email?: string;
+  google_site_verification?: string;
+  gtm_container_id?: string;
+  default_thumbnail?: string | null;
+  home_main_article_markdown?: string | null;
 };
 
 export type CompanyPage = {
@@ -331,6 +355,8 @@ function normalizeArticleSummary(input: Partial<ArticleSummary>): ArticleSummary
     previewHeadings: Array.isArray(input.previewHeadings) ? input.previewHeadings : [],
     isCurrent: Boolean(input.isCurrent),
     categorySlug,
+    categoryTitle: input.categoryTitle,
+    image: input.image,
   };
 }
 
@@ -379,6 +405,7 @@ export async function getBlogArticle(slug: string): Promise<BlogArticle | null> 
       editors: response.data.editors,
       metaTitle: response.data.metaTitle,
       metaDescription: response.data.metaDescription,
+      shareLinks: response.data.shareLinks,
       faqs: normalizeFaqs(response.data.faqs),
       relatedPosts: (response.seriesArticles || response.related)?.map((post: any) => {
         const postSlug = post.slug || post.href?.replace(/^\//, "") || "";
@@ -401,6 +428,33 @@ export async function getBlogArticle(slug: string): Promise<BlogArticle | null> 
   return null;
 }
 
+export async function getSiteSettings(): Promise<SiteSettings> {
+  const response = await fetchCms<SiteSettings>(`/site/settings`);
+  return response?.data ?? {};
+}
+
+export async function getAuthors(): Promise<Author[]> {
+  const response = await fetchCms<Author[]>(`/site/authors`);
+  return Array.isArray(response?.data) ? response.data : [];
+}
+
+export async function getAuthor(slug: string): Promise<Author | null> {
+  const response = await fetchCms<Author>(`/site/authors/${slug}`);
+  if (!response?.data) return null;
+
+  return {
+    ...response.data,
+    articles: Array.isArray(response.data.articles)
+      ? response.data.articles.map(normalizeBlog)
+      : [],
+  };
+}
+
+export async function resolveShareLink(code: string): Promise<string | null> {
+  const response = await fetchCms<{ targetUrl?: string }>(`/site/share-links/${code}`);
+  return response?.data?.targetUrl || null;
+}
+
 export async function getCompanyPage(slug: string): Promise<CompanyPage | null> {
   const response = await fetchCms<CompanyPage>(`/site/company-pages/${slug}`);
   return response?.data ?? null;
@@ -420,6 +474,8 @@ export type ArticleSummary = {
   previewHeadings?: string[];
   isCurrent?: boolean;
   categorySlug?: string | null;
+  categoryTitle?: string | null;
+  image?: string | null;
 };
 
 export type Series = {

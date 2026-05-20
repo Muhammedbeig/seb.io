@@ -1,30 +1,32 @@
 import Link from "next/link";
+import type { Author } from "@/lib/cms";
 import type { NavSeries } from "./Navbar";
 
 const staticFooterLinks = {
-  Topics: [
-    { label: "Search Engine Basics", href: "/blog" },
-    { label: "SEO Guides", href: "/blog" },
-    { label: "Digital Marketing", href: "/blog" },
-    { label: "Technical SEO", href: "/blog" },
-  ],
   Company: [
     { label: "About Us", href: "/about-us" },
+    { label: "Authors", href: "/authors" },
     { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact-us" },
+    { label: "llms.txt", href: "/llms.txt" },
     { label: "Privacy Policy", href: "/privacy-policy" },
     { label: "Terms", href: "/terms-and-conditions" },
   ],
 };
 
-export default function Footer({ series = [] }: { series?: NavSeries[] }) {
+export default function Footer({ series = [], authors = [] }: { series?: NavSeries[]; authors?: Author[] }) {
   const seriesLinks = series.map((s) => ({
     label: s.title,
     href: `/${s.slug}`,
   }));
+  const authorLinks = authors.slice(0, 5).map((author) => ({
+    label: author.name,
+    href: `/authors/${author.slug}`,
+  }));
 
   const footerLinks: Record<string, { label: string; href: string }[]> = {
     Series: seriesLinks.length > 0 ? seriesLinks : [{ label: "All Series", href: "/series" }],
+    Authors: authorLinks.length > 0 ? authorLinks : [{ label: "All Authors", href: "/authors" }],
     ...staticFooterLinks,
   };
 

@@ -73,10 +73,15 @@ export default async function BlogPage() {
               <Link
                 key={post.slug}
                 href={post.href}
-                className="card-hover group rounded-2xl border border-[#1E1E30] p-6 flex flex-col justify-between"
-                style={{ background: "var(--card)", minHeight: "220px" }}
+                className="card-hover group overflow-hidden rounded-2xl border border-[#1E1E30] flex flex-col justify-between"
+                style={{ background: "var(--card)", minHeight: "280px" }}
               >
-                <div>
+                {post.image && (
+                  <div className="aspect-[16/8] overflow-hidden border-b border-[#1E1E30] bg-[#0F0F1A]">
+                    <img src={post.image} alt={post.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
+                  </div>
+                )}
+                <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <span
                       style={{
@@ -106,7 +111,7 @@ export default async function BlogPage() {
                     excerptClassName="mt-2 text-xs text-[#6B6B80] leading-relaxed line-clamp-3"
                   />
                 </div>
-                <div className="flex items-center justify-between mt-5 pt-4 border-t border-[#1E1E30]">
+                <div className="flex items-center justify-between mt-0 p-6 pt-4 border-t border-[#1E1E30]">
                   <span className="text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-mono)" }}>
                     {post.date}
                   </span>

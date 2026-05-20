@@ -221,6 +221,12 @@ body {
   display: inline-block;
 }
 
+.tag-cyan {
+  background: rgba(5, 225, 245, 0.08);
+  border-color: rgba(5, 225, 245, 0.28);
+  color: #05e1f5;
+}
+
 /* ─── Gradient text ─── */
 .gradient-text {
   background: linear-gradient(135deg, var(--lime) 0%, #66FF99 50%, #00FFCC 100%);

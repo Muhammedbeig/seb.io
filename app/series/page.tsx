@@ -86,14 +86,21 @@ export default async function SeriesPage() {
                       <div className="flex justify-center border-r border-[#1E1E30] pt-4 text-[11px] text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
                         {seriesIndex + 1}.{articleIndex + 1}
                       </div>
-                      <div className="px-4 py-4 sm:px-5">
-                        <ArticlePeekCard
-                          title={article.title}
-                          excerpt={article.excerpt}
-                          attributes={article.attributes}
-                          previewHeadings={article.previewHeadings}
-                        />
-                        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                      <div className={`grid gap-4 px-4 py-4 sm:px-5 ${article.image ? "sm:grid-cols-[104px_minmax(0,1fr)]" : ""}`}>
+                        {article.image && (
+                          <div className="aspect-[4/3] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
+                            <img src={article.image} alt={article.title} className="h-full w-full object-cover" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <ArticlePeekCard
+                            title={article.title}
+                            excerpt={article.excerpt}
+                            attributes={article.attributes}
+                            previewHeadings={article.previewHeadings}
+                          />
+                        </div>
+                        <div className={`${article.image ? "sm:col-start-2" : ""} mt-0 flex flex-wrap items-center gap-3 text-xs text-[#6B6B80]`} style={{ fontFamily: "var(--font-dm-mono)" }}>
                           <span>{article.readTime}</span>
                           {article.date && <span>{article.date}</span>}
                         </div>

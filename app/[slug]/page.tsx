@@ -24,6 +24,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       alternates: {
         canonical: `https://searchenginebasics.io/${series.slug}`,
       },
+      openGraph: {
+        title: series.meta_title || series.title,
+        description: series.meta_description || series.description,
+        url: `https://searchenginebasics.io/${series.slug}`,
+        images: [{ url: series.image || "/Thumbnail.png" }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: series.meta_title || series.title,
+        description: series.meta_description || series.description,
+        images: [series.image || "/Thumbnail.png"],
+      },
     };
   }
 
@@ -34,6 +46,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: article.metaDescription || article.excerpt,
       alternates: {
         canonical: `https://searchenginebasics.io${canonicalPath}`,
+      },
+      openGraph: {
+        title: article.metaTitle || article.title,
+        description: article.metaDescription || article.excerpt,
+        url: `https://searchenginebasics.io${canonicalPath}`,
+        type: "article",
+        images: [{ url: article.image || "/Thumbnail.png" }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: article.metaTitle || article.title,
+        description: article.metaDescription || article.excerpt,
+        images: [article.image || "/Thumbnail.png"],
       },
     };
   }
@@ -145,15 +170,22 @@ export default async function DynamicSlugPage({ params }: PageProps) {
                       >
                         {String(index + 1).padStart(2, "0")}
                       </div>
-                      <div className="px-4 py-4 sm:px-5">
-                        <ArticlePeekCard
-                          title={article.title}
-                          excerpt={article.excerpt}
-                          attributes={article.attributes}
-                          previewHeadings={article.previewHeadings}
-                        />
+                      <div className={`grid gap-4 px-4 py-4 sm:px-5 ${article.image ? "sm:grid-cols-[104px_minmax(0,1fr)]" : ""}`}>
+                        {article.image && (
+                          <div className="aspect-[4/3] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
+                            <img src={article.image} alt={article.title} className="h-full w-full object-cover" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <ArticlePeekCard
+                            title={article.title}
+                            excerpt={article.excerpt}
+                            attributes={article.attributes}
+                            previewHeadings={article.previewHeadings}
+                          />
+                        </div>
                         <div
-                          className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[#6B6B80]"
+                          className={`${article.image ? "sm:col-start-2" : ""} mt-0 flex flex-wrap items-center gap-3 text-xs text-[#6B6B80]`}
                           style={{ fontFamily: "var(--font-dm-mono)" }}
                         >
                           <span>{article.readTime}</span>
@@ -185,6 +217,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
       tagColor={article.accent}
       title={article.title}
       excerpt={article.excerpt}
+      image={article.image}
       date={article.date}
       updatedOn={article.updatedOn}
       readTime={article.readTime}
@@ -199,6 +232,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
       reviewers={article.reviewers}
       editors={article.editors}
       faqs={article.faqs}
+      shareLinks={article.shareLinks}
     >
       <ArticleContent html={article.content} />
     </ArticleLayout>

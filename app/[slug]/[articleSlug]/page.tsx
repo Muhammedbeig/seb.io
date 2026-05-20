@@ -20,6 +20,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternates: {
       canonical: `https://searchenginebasics.io/${params.slug}/${article.slug}`,
     },
+    openGraph: {
+      title: article.metaTitle || article.title,
+      description: article.metaDescription || article.excerpt,
+      url: `https://searchenginebasics.io/${params.slug}/${article.slug}`,
+      type: "article",
+      images: [{ url: article.image || "/Thumbnail.png" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.metaTitle || article.title,
+      description: article.metaDescription || article.excerpt,
+      images: [article.image || "/Thumbnail.png"],
+    },
   };
 }
 
@@ -39,6 +52,7 @@ export default async function NestedArticlePage({ params }: PageProps) {
       tagColor={article.accent}
       title={article.title}
       excerpt={article.excerpt}
+      image={article.image}
       date={article.date}
       updatedOn={article.updatedOn}
       readTime={article.readTime}
@@ -54,6 +68,7 @@ export default async function NestedArticlePage({ params }: PageProps) {
       reviewers={article.reviewers}
       editors={article.editors}
       faqs={article.faqs}
+      shareLinks={article.shareLinks}
     >
       <ArticleContent html={article.content} />
     </ArticleLayout>

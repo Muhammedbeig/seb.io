@@ -57,12 +57,18 @@ export default async function FeaturedArticles() {
         <div className="grid lg:grid-cols-5 gap-5">
           <Link
             href={featured.href}
-            className="card-hover lg:col-span-3 group relative rounded-2xl border border-[#1E1E30] overflow-hidden p-8 flex flex-col justify-between"
-            style={{ background: "var(--card)", minHeight: "360px" }}
+            className="card-hover lg:col-span-3 group relative rounded-2xl border border-[#1E1E30] overflow-hidden flex flex-col justify-between"
+            style={{ background: "var(--card)", minHeight: "420px" }}
           >
             <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${featured.accent}, transparent)` }} />
 
-            <div>
+            {featured.image && (
+              <div className="aspect-[16/8] overflow-hidden border-b border-[#1E1E30] bg-[#0F0F1A]">
+                <img src={featured.image} alt={featured.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
+              </div>
+            )}
+
+            <div className="p-8">
               <div className="flex items-center gap-3 mb-5">
                 <TagChip label={featured.tag} accent={featured.accent} />
                 <span className="text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-mono)" }}>
@@ -81,7 +87,7 @@ export default async function FeaturedArticles() {
               />
             </div>
 
-            <div className="flex items-center justify-between mt-6 pt-5 border-t border-[#1E1E30]">
+            <div className="flex items-center justify-between mt-0 p-8 pt-5 border-t border-[#1E1E30]">
               <div className="flex items-center gap-4 text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-mono)" }}>
                 <span>{featured.date}</span>
                 <span>.</span>
@@ -102,6 +108,11 @@ export default async function FeaturedArticles() {
                 style={{ background: "var(--card)", flex: 1 }}
               >
                 <div>
+                  {article.image && (
+                    <div className="mb-3 aspect-[16/7] overflow-hidden rounded-lg border border-[#1E1E30] bg-[#0F0F1A]">
+                      <img src={article.image} alt={article.title} className="h-full w-full object-cover" />
+                    </div>
+                  )}
                   <TagChip label={article.tag} accent={article.accent} />
                   <div className="mt-2.5">
                     <ArticlePeekCard

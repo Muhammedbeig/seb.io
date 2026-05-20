@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getBlogSummaries, getSeries } from "@/lib/cms";
+import { getAuthors, getBlogSummaries, getSeries } from "@/lib/cms";
 import { absoluteSiteUrl } from "@/lib/site";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
@@ -23,10 +23,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/", changeFrequency: "daily", priority: 1 },
     { path: "/blog", changeFrequency: "daily", priority: 0.9 },
     { path: "/series", changeFrequency: "weekly", priority: 0.8 },
+    { path: "/authors", changeFrequency: "monthly", priority: 0.6 },
     { path: "/about-us", changeFrequency: "monthly", priority: 0.5 },
     { path: "/contact-us", changeFrequency: "monthly", priority: 0.4 },
     { path: "/privacy-policy", changeFrequency: "yearly", priority: 0.2 },
     { path: "/terms-and-conditions", changeFrequency: "yearly", priority: 0.2 },
+    { path: "/llms.txt", changeFrequency: "daily", priority: 0.2 },
   ].forEach(({ path, changeFrequency, priority }) => {
     addRoute(routes, {
       url: absoluteSiteUrl(path),
@@ -36,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   });
 
-  const [series, articles] = await Promise.all([getSeries(), getBlogSummaries(1000)]);
+  const [series, articles, authors] = await Promise.all([getSeries(), getBlogSummaries(1000), getAuthors()]);
 
   for (const item of series) {
     addRoute(routes, {
@@ -65,6 +67,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
+  for (const author of authors) {
+    addRoute(routes, {
+      url: absoluteSiteUrl(`/authors/${author.slug}`),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.45,
+    });
+  }
+
   return Array.from(routes.values());
 }
-

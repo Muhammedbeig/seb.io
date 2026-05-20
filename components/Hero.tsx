@@ -96,7 +96,9 @@ export default function Hero() {
               <span className="tag">Free SEO Reading Series - 2026</span>
             </div>
 
-            <h1
+            <div
+              role="heading"
+              aria-level={2}
               className="mt-6 leading-[0.95] tracking-tight"
               style={{
                 fontFamily: "var(--font-syne)",
@@ -118,7 +120,7 @@ export default function Hero() {
               <span className="hero-word animate-fade-up animate-delay-4 block gradient-text">
                 WORK.
               </span>
-            </h1>
+            </div>
 
             <p
               className="animate-fade-up animate-delay-5 mt-7 text-[#6B6B80] leading-relaxed max-w-md"

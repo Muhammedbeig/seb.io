@@ -1,9 +1,14 @@
 import PageShell from "@/components/PageShell";
 import Link from "next/link";
-import { getCompanyPage } from "@/lib/cms";
+import { getAuthors, getBlogSummaries, getCompanyPage, getSeries } from "@/lib/cms";
 
 export default async function AboutPage() {
-  const page = await getCompanyPage("about-us");
+  const [page, articles, series, authors] = await Promise.all([
+    getCompanyPage("about-us"),
+    getBlogSummaries(1000),
+    getSeries(),
+    getAuthors(),
+  ]);
 
   return (
     <main>
@@ -81,10 +86,10 @@ export default async function AboutPage() {
                   By the numbers
                 </h4>
                 {[
-                  { label: "Articles published", value: "26+" },
-                  { label: "Monthly readers", value: "18K" },
-                  { label: "Topics covered", value: "12" },
-                  { label: "Years running", value: "1" },
+                  { label: "Articles published", value: `${articles.length}` },
+                  { label: "Reading series", value: `${series.length}` },
+                  { label: "Contributors", value: `${authors.length}` },
+                  { label: "Access cost", value: "Free" },
                 ].map((stat) => (
                   <div key={stat.label} className="flex items-center justify-between py-3 border-b border-[#1E1E30] last:border-0">
                     <span className="text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-sans)" }}>

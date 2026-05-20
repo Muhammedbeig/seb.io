@@ -3,7 +3,8 @@ import ArticleAttributeChips from "@/components/ArticleAttributeChips";
 import ArticleToc from "@/components/ArticleToc";
 import MathJaxLoader from "@/components/MathJaxLoader";
 import PageShell from "@/components/PageShell";
-import type { ArticleAttribute, ArticleFaq, ArticleSummary, Author } from "@/lib/cms";
+import ShareButtons from "@/components/ShareButtons";
+import type { ArticleAttribute, ArticleFaq, ArticleSummary, Author, ShareLinks } from "@/lib/cms";
 
 interface TocItem {
   id: string;
@@ -33,6 +34,7 @@ interface ArticleLayoutProps {
   tagColor: string;
   title: string;
   excerpt: string;
+  image?: string | null;
   date: string;
   updatedOn?: string | null;
   readTime: string;
@@ -49,6 +51,7 @@ interface ArticleLayoutProps {
   seriesTitle?: string;
   faqs?: ArticleFaq[];
   currentSlug?: string;
+  shareLinks?: ShareLinks;
 }
 
 function slugFromHref(href: string) {
@@ -311,6 +314,7 @@ export default function ArticleLayout({
   tagColor,
   title,
   excerpt,
+  image,
   date,
   updatedOn,
   readTime,
@@ -327,6 +331,7 @@ export default function ArticleLayout({
   seriesTitle,
   faqs = [],
   currentSlug,
+  shareLinks,
 }: ArticleLayoutProps) {
   const hasContributors =
     !!author || additionalAuthors.length > 0 || reviewers.length > 0 || editors.length > 0;
@@ -438,6 +443,12 @@ export default function ArticleLayout({
             )}
 
             <div className="mt-8 h-px w-full" style={{ background: `linear-gradient(90deg, ${tagColor}50, transparent)` }} />
+
+            {image && (
+              <div className="mt-8 overflow-hidden rounded-lg border border-[#1E1E30] bg-[#0F0F1A]">
+                <img src={image} alt={title} className="h-full max-h-[460px] w-full object-cover" />
+              </div>
+            )}
           </div>
         </header>
 
@@ -452,6 +463,8 @@ export default function ArticleLayout({
                 <article className="prose-custom min-w-0">
                   {children}
                 </article>
+
+                <ShareButtons links={shareLinks} title={title} />
 
                 <ArticlePager previous={previousArticle} next={nextArticle} />
 
