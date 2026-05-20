@@ -112,6 +112,7 @@ export default async function CoreSeries() {
                             title={article.title}
                             excerpt={article.excerpt}
                             attributes={article.attributes}
+                            previewHeadings={article.previewHeadings}
                             compact
                             titleTag="span"
                           />
