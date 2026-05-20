@@ -42,19 +42,28 @@ export default async function AuthorsPage() {
                     style={{ background: "var(--card)" }}
                   >
                     <div className="flex gap-4">
-                      <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border border-[#B8FF35]/25 bg-[#0F0F1A]">
+                      <div
+                        className="flex-shrink-0 rounded-full flex items-center justify-center"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          background: avatar ? "#0F0F1A" : "linear-gradient(135deg, #B8FF3520, #B8FF3560)",
+                          border: "1px solid #B8FF3540",
+                          overflow: "hidden",
+                        }}
+                      >
                         {avatar ? (
                           <img
                             src={avatar}
                             alt={author.name}
                             loading="lazy"
                             decoding="async"
-                            className="h-full w-full object-cover"
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xl font-bold text-[#B8FF35]">
+                          <span style={{ color: "#B8FF35", fontFamily: "var(--font-syne)", fontSize: "1.25rem", fontWeight: 700 }}>
                             {author.name.charAt(0)}
-                          </div>
+                          </span>
                         )}
                       </div>
                       <div className="min-w-0">

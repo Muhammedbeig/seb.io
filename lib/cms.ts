@@ -229,15 +229,16 @@ function parseHtmlWithToc(html: string): { content: string; toc: { id: string; t
 
 function cmsBases(): string[] {
   const configured = process.env.CMS_API_URL || process.env.NEXT_PUBLIC_CMS_API_URL;
-  const defaults = [
+
+  if (configured) {
+    return [configured.replace(/\/$/, "")];
+  }
+
+  return [
     "http://127.0.0.1:8000/api",
     "http://localhost/PhpPanel/public/api",
     "http://localhost/PhpPanel/api",
   ];
-
-  return [configured, ...defaults]
-    .filter((base): base is string => Boolean(base))
-    .map((base) => base.replace(/\/$/, ""));
 }
 
 async function fetchCms<T>(path: string, init?: RequestInit): Promise<CmsResponse<T> | null> {
@@ -378,7 +379,7 @@ export async function getBlogSummaries(limit?: number): Promise<BlogSummary[]> {
 export async function getFeaturedArticles(): Promise<BlogSummary[]> {
   const [featuredResponse, recentArticles] = await Promise.all([
     fetchCms<{ data?: BlogSummary[] } | BlogSummary[]>(`/site/blogs?featured=1&per_page=1`),
-    getBlogSummaries(4),
+    getBlogSummaries(6),
   ]);
   const featuredPayload = featuredResponse?.data;
   const featuredBlogs = Array.isArray(featuredPayload)
@@ -389,10 +390,10 @@ export async function getFeaturedArticles(): Promise<BlogSummary[]> {
   const featured = featuredBlogs.map(normalizeBlog)[0] || recentArticles.find((article) => article.featured || article.isFeatured);
 
   if (!featured) {
-    return recentArticles;
+    return recentArticles.slice(0, 5);
   }
 
-  return [featured, ...recentArticles.filter((article) => article.slug !== featured.slug)].slice(0, 4);
+  return [featured, ...recentArticles.filter((article) => article.slug !== featured.slug)].slice(0, 5);
 }
 
 export async function getBlogArticle(slug: string): Promise<BlogArticle | null> {

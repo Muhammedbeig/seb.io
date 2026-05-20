@@ -41,19 +41,28 @@ export default async function AuthorPage({ params }: PageProps) {
               {"<-"} Authors
             </Link>
             <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-center">
-              <div className="h-28 w-28 overflow-hidden rounded-full border border-[#B8FF35]/30 bg-[#0F0F1A]">
+              <div
+                className="flex-shrink-0 rounded-full flex items-center justify-center"
+                style={{
+                  width: 112,
+                  height: 112,
+                  background: avatar ? "#0F0F1A" : "linear-gradient(135deg, #B8FF3520, #B8FF3560)",
+                  border: "1px solid #B8FF3540",
+                  overflow: "hidden",
+                }}
+              >
                 {avatar ? (
                   <img
                     src={avatar}
                     alt={author.name}
                     fetchPriority="high"
                     decoding="async"
-                    className="h-full w-full object-cover"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-[#B8FF35]">
+                  <span style={{ color: "#B8FF35", fontFamily: "var(--font-syne)", fontSize: "1.875rem", fontWeight: 700 }}>
                     {author.name.charAt(0)}
-                  </div>
+                  </span>
                 )}
               </div>
               <div>

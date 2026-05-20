@@ -54,10 +54,10 @@ export default async function FeaturedArticles() {
           </Link>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4 lg:auto-rows-fr">
           <Link
             href={featured.href}
-            className="card-hover group relative overflow-hidden rounded-lg border border-[#1E1E30] md:col-span-2 lg:col-span-2"
+            className="card-hover group relative overflow-hidden rounded-lg border border-[#1E1E30] md:col-span-2 lg:col-span-2 lg:row-span-2 flex flex-col"
             style={{ background: "var(--card)" }}
           >
             <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${featured.accent}, transparent)` }} />
@@ -74,7 +74,7 @@ export default async function FeaturedArticles() {
               </div>
             )}
 
-            <div className="flex min-h-[270px] flex-col justify-between p-5 sm:p-6">
+            <div className="flex flex-1 min-h-[270px] flex-col justify-between p-5 sm:p-6">
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <TagChip label={featured.tag} accent={featured.accent} />
