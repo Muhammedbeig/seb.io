@@ -135,7 +135,7 @@ export default function Navbar({ series = [] }: { series?: NavSeries[] }) {
             </button>
           </form>
 
-          <Link href="/series" className="btn-lime text-sm px-5 py-2 rounded-full">
+          <Link href="/#main-guide" className="btn-lime text-sm px-5 py-2 rounded-full">
             Start Reading {"->"}
           </Link>
         </div>
@@ -200,7 +200,7 @@ export default function Navbar({ series = [] }: { series?: NavSeries[] }) {
               </Link>
             );
           })}
-          <Link href="/series" className="btn-lime text-sm px-5 py-2.5 rounded-full text-center mt-2" onClick={() => setMenuOpen(false)}>
+          <Link href="/#main-guide" className="btn-lime text-sm px-5 py-2.5 rounded-full text-center mt-2" onClick={() => setMenuOpen(false)}>
             Start Reading {"->"}
           </Link>
         </div>

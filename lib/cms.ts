@@ -66,7 +66,7 @@ export type BlogArticle = BlogSummary & {
   shareLinks?: ShareLinks;
 };
 
-export type SharePlatform = "facebook" | "instagram" | "tiktok" | "whatsapp";
+export type SharePlatform = "facebook" | "instagram" | "tiktok" | "whatsapp" | "link";
 
 export type ShareLinks = Partial<Record<SharePlatform, {
   shortUrl: string;
@@ -376,14 +376,23 @@ export async function getBlogSummaries(limit?: number): Promise<BlogSummary[]> {
 }
 
 export async function getFeaturedArticles(): Promise<BlogSummary[]> {
-  const articles = await getBlogSummaries(4);
-  const featured = articles.find((article) => article.featured || article.isFeatured);
+  const [featuredResponse, recentArticles] = await Promise.all([
+    fetchCms<{ data?: BlogSummary[] } | BlogSummary[]>(`/site/blogs?featured=1&per_page=1`),
+    getBlogSummaries(4),
+  ]);
+  const featuredPayload = featuredResponse?.data;
+  const featuredBlogs = Array.isArray(featuredPayload)
+    ? featuredPayload
+    : Array.isArray(featuredPayload?.data)
+      ? featuredPayload.data
+      : [];
+  const featured = featuredBlogs.map(normalizeBlog)[0] || recentArticles.find((article) => article.featured || article.isFeatured);
 
-  if (!featured || articles[0] === featured) {
-    return articles;
+  if (!featured) {
+    return recentArticles;
   }
 
-  return [featured, ...articles.filter((article) => article.slug !== featured.slug)].slice(0, 4);
+  return [featured, ...recentArticles.filter((article) => article.slug !== featured.slug)].slice(0, 4);
 }
 
 export async function getBlogArticle(slug: string): Promise<BlogArticle | null> {

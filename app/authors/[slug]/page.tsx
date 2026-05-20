@@ -28,7 +28,8 @@ export default async function AuthorPage({ params }: PageProps) {
   const author = await getAuthor(params.slug);
   if (!author) notFound();
 
-  const avatar = author.avatar_url || author.avatar;
+  const avatarRaw = author.avatar_url || author.avatar;
+  const avatar = avatarRaw && !avatarRaw.startsWith("http") && !avatarRaw.startsWith("/") ? `/${avatarRaw}` : avatarRaw;
 
   return (
     <main>
@@ -42,7 +43,13 @@ export default async function AuthorPage({ params }: PageProps) {
             <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-center">
               <div className="h-28 w-28 overflow-hidden rounded-full border border-[#B8FF35]/30 bg-[#0F0F1A]">
                 {avatar ? (
-                  <img src={avatar} alt={author.name} className="h-full w-full object-cover" />
+                  <img
+                    src={avatar}
+                    alt={author.name}
+                    fetchPriority="high"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-[#B8FF35]">
                     {author.name.charAt(0)}
@@ -86,11 +93,17 @@ export default async function AuthorPage({ params }: PageProps) {
                       className="group rounded-lg border border-[#1E1E30] p-5 transition-colors hover:border-[#B8FF35]/45 hover:bg-[#0F0F1A]"
                       style={{ background: "var(--card)" }}
                     >
-                      {article.image && (
-                        <div className="mb-4 aspect-[16/8] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
-                          <img src={article.image} alt={article.title} className="h-full w-full object-cover" />
-                        </div>
-                      )}
+                        {article.image && (
+                          <div className="mb-4 aspect-[16/8] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
+                          <img
+                            src={article.image}
+                            alt={article.title}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover"
+                          />
+                          </div>
+                        )}
                       <ArticlePeekCard
                         title={article.title}
                         excerpt={article.excerpt}

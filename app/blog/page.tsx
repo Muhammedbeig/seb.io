@@ -78,7 +78,13 @@ export default async function BlogPage() {
               >
                 {post.image && (
                   <div className="aspect-[16/8] overflow-hidden border-b border-[#1E1E30] bg-[#0F0F1A]">
-                    <img src={post.image} alt={post.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                    />
                   </div>
                 )}
                 <div className="p-6">

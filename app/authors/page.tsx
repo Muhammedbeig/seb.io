@@ -32,7 +32,8 @@ export default async function AuthorsPage() {
           <div className="max-w-6xl mx-auto px-6 lg:px-8">
             <div className="grid gap-5 md:grid-cols-2">
               {authors.map((author) => {
-                const avatar = author.avatar_url || author.avatar;
+                const avatarRaw = author.avatar_url || author.avatar;
+                const avatar = avatarRaw && !avatarRaw.startsWith("http") && !avatarRaw.startsWith("/") ? `/${avatarRaw}` : avatarRaw;
                 return (
                   <Link
                     key={author.slug}
@@ -43,7 +44,13 @@ export default async function AuthorsPage() {
                     <div className="flex gap-4">
                       <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-full border border-[#B8FF35]/25 bg-[#0F0F1A]">
                         {avatar ? (
-                          <img src={avatar} alt={author.name} className="h-full w-full object-cover" />
+                          <img
+                            src={avatar}
+                            alt={author.name}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover"
+                          />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-xl font-bold text-[#B8FF35]">
                             {author.name.charAt(0)}

@@ -13,6 +13,7 @@ type ArticlePeekCardProps = {
   minHeightClassName?: string;
   titleClassName?: string;
   excerptClassName?: string;
+  titleTag?: "h3" | "span";
 };
 
 export default function ArticlePeekCard({
@@ -24,6 +25,7 @@ export default function ArticlePeekCard({
   minHeightClassName,
   titleClassName,
   excerptClassName,
+  titleTag = "h3",
 }: ArticlePeekCardProps) {
   const phrases = useMemo(
     () => [title, ...previewHeadings.filter(Boolean).slice(0, 5)],
@@ -76,10 +78,12 @@ export default function ArticlePeekCard({
     titleClassName ||
     `${compact ? "text-sm" : "text-base sm:text-lg"} font-semibold text-[#E8E8F0] leading-snug group-hover:text-[#B8FF35] transition-colors duration-200`;
 
+  const Tag = titleTag;
+
   return (
     <div className="min-w-0">
       <div className={minHeightClassName || (compact ? "min-h-[78px]" : "min-h-[104px]")}>
-        <h3
+        <Tag
           aria-label={title}
           className={`${titleClasses} line-clamp-2 h-[2.75em] overflow-hidden`}
           style={{ fontFamily: "var(--font-syne)" }}
@@ -88,7 +92,7 @@ export default function ArticlePeekCard({
           {phrases.length > 1 && (
             <span className="ml-0.5 inline-block h-[1em] w-px translate-y-0.5 animate-pulse bg-[#B8FF35]" aria-hidden="true" />
           )}
-        </h3>
+        </Tag>
         {excerpt && (
           <p
             className={

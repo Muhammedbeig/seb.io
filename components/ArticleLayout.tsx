@@ -65,11 +65,12 @@ function seriesHeading(title: string) {
 }
 
 function AuthorAvatar({ author }: { author: Author }) {
-  const avatarUrl = author.avatar_url || author.avatar;
+  const avatarUrlRaw = author.avatar_url || author.avatar;
+  const avatarUrl = avatarUrlRaw && !avatarUrlRaw.startsWith("http") && !avatarUrlRaw.startsWith("/") ? `/${avatarUrlRaw}` : avatarUrlRaw;
   return (
-    <div className="flex items-start gap-3">
+    <Link href={`/authors/${author.slug}`} className="flex items-start gap-3 group/avatar block">
       <div
-        className="flex-shrink-0 rounded-full flex items-center justify-center text-sm font-bold"
+        className="flex-shrink-0 rounded-full flex items-center justify-center text-sm font-bold transition-transform group-hover/avatar:scale-105"
         style={{
           width: 44,
           height: 44,
@@ -79,7 +80,13 @@ function AuthorAvatar({ author }: { author: Author }) {
         }}
       >
         {avatarUrl ? (
-          <img src={avatarUrl} alt={author.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img
+            src={avatarUrl}
+            alt={author.name}
+            loading="lazy"
+            decoding="async"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
         ) : (
           <span style={{ color: "#B8FF35", fontFamily: "var(--font-syne)" }}>
             {author.name.charAt(0).toUpperCase()}
@@ -87,7 +94,7 @@ function AuthorAvatar({ author }: { author: Author }) {
         )}
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-[#E8E8F0] leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
+        <p className="text-sm font-semibold text-[#E8E8F0] leading-tight transition-colors group-hover/avatar:text-[#B8FF35]" style={{ fontFamily: "var(--font-syne)" }}>
           {author.name}
         </p>
         {author.role && (
@@ -96,12 +103,12 @@ function AuthorAvatar({ author }: { author: Author }) {
           </p>
         )}
         {author.bio && (
-          <p className="text-xs text-[#6B6B80] mt-1 leading-relaxed" style={{ fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs text-[#6B6B80] mt-1 leading-relaxed animate-fade-in" style={{ fontFamily: "var(--font-dm-sans)" }}>
             {author.bio}
           </p>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -446,7 +453,13 @@ export default function ArticleLayout({
 
             {image && (
               <div className="mt-8 overflow-hidden rounded-lg border border-[#1E1E30] bg-[#0F0F1A]">
-                <img src={image} alt={title} className="h-full max-h-[460px] w-full object-cover" />
+                <img
+                  src={image}
+                  alt={title}
+                  className="h-full max-h-[460px] w-full object-cover"
+                  fetchPriority="high"
+                  decoding="async"
+                />
               </div>
             )}
           </div>

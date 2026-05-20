@@ -3,29 +3,45 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import RouteLoadingSkeleton from "@/components/RouteLoadingSkeleton";
-
-const STATIC_PATHS = new Set([
-  "/",
-  "/about-us",
-  "/blog",
-  "/contact-us",
-  "/privacy-policy",
-  "/search",
-  "/series",
-  "/terms-and-conditions",
-]);
+import HomeLoading from "@/app/loading";
+import BlogLoading from "@/app/blog/loading";
+import SearchLoading from "@/app/search/loading";
+import SeriesIndexLoading from "@/app/series/loading";
+import CategoryLoading from "@/app/[slug]/loading";
+import ArticleLoading from "@/app/[slug]/[articleSlug]/loading";
+import AuthorsLoading from "@/app/authors/loading";
+import AuthorLoading from "@/app/authors/[slug]/loading";
+import AboutUsLoading from "@/app/about-us/loading";
+import ContactLoading from "@/app/contact-us/loading";
+import PrivacyPolicyLoading from "@/app/privacy-policy/loading";
+import TermsAndConditionsLoading from "@/app/terms-and-conditions/loading";
 
 function normalizePath(pathname: string) {
   return pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
 }
 
-function shouldGuardPath(pathname: string) {
-  const cleanPath = normalizePath(pathname);
-  return !STATIC_PATHS.has(cleanPath) && !cleanPath.startsWith("/search/");
-}
-
 function getDirectMain() {
   return Array.from(document.body.children).find((element) => element.tagName === "MAIN") as HTMLElement | undefined;
+}
+
+function loadingForPath(pathname: string) {
+  const cleanPath = normalizePath(pathname);
+  const segments = cleanPath.split("/").filter(Boolean);
+
+  if (cleanPath === "/") return <HomeLoading />;
+  if (cleanPath === "/about-us") return <AboutUsLoading />;
+  if (cleanPath === "/blog") return <BlogLoading />;
+  if (cleanPath === "/contact-us") return <ContactLoading />;
+  if (cleanPath === "/privacy-policy") return <PrivacyPolicyLoading />;
+  if (cleanPath === "/search") return <SearchLoading />;
+  if (cleanPath === "/series") return <SeriesIndexLoading />;
+  if (cleanPath === "/terms-and-conditions") return <TermsAndConditionsLoading />;
+  if (segments[0] === "authors" && segments.length === 1) return <AuthorsLoading />;
+  if (segments[0] === "authors" && segments.length === 2) return <AuthorLoading />;
+  if (segments.length === 2) return <ArticleLoading />;
+  if (segments.length === 1) return <CategoryLoading />;
+
+  return <RouteLoadingSkeleton chrome={false} dense />;
 }
 
 export default function RouteTransitionFallback() {
@@ -56,7 +72,6 @@ export default function RouteTransitionFallback() {
       const nextPath = normalizePath(nextUrl.pathname);
       const currentPath = normalizePath(window.location.pathname);
       if (nextPath === currentPath) return;
-      if (!shouldGuardPath(nextPath)) return;
 
       pendingStartedAt.current = performance.now();
       setPendingPath(nextPath);
@@ -77,7 +92,7 @@ export default function RouteTransitionFallback() {
       const currentPath = normalizePath(window.location.pathname);
       const directMain = getDirectMain();
       const mainHeight = directMain?.getBoundingClientRect().height ?? 0;
-      const visibleLongEnough = performance.now() - pendingStartedAt.current > 120;
+      const visibleLongEnough = performance.now() - pendingStartedAt.current > 360;
 
       if (currentPath === pendingPath && directMain && mainHeight > 0 && visibleLongEnough) {
         stableFrames += 1;
@@ -105,7 +120,7 @@ export default function RouteTransitionFallback() {
 
   return (
     <div className="fixed inset-0 z-40 overflow-hidden bg-[#07070F] text-[#E8E8F0]" aria-hidden="true">
-      <RouteLoadingSkeleton chrome={false} />
+      {loadingForPath(pendingPath)}
     </div>
   );
 }

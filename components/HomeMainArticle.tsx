@@ -11,7 +11,7 @@ export default async function HomeMainArticle() {
   }
 
   return (
-    <section className="py-24 border-y border-[#1E1E30]" style={{ background: "var(--surface)" }}>
+    <section id="main-guide" className="py-24 border-y border-[#1E1E30]" style={{ background: "var(--surface)" }}>
       <div className="max-w-4xl mx-auto px-6 lg:px-8">
         <span className="tag">Main Guide</span>
         <h1

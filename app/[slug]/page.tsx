@@ -125,7 +125,13 @@ export default async function DynamicSlugPage({ params }: PageProps) {
 
                 {series.image && (
                   <div className="overflow-hidden rounded-lg border border-[#1E1E30] aspect-[4/3]">
-                    <img src={series.image} alt={series.title} className="h-full w-full object-cover" />
+                    <img
+                      src={series.image}
+                      alt={series.title}
+                      className="h-full w-full object-cover"
+                      fetchPriority="high"
+                      decoding="async"
+                    />
                   </div>
                 )}
               </div>
@@ -173,7 +179,13 @@ export default async function DynamicSlugPage({ params }: PageProps) {
                       <div className={`grid gap-4 px-4 py-4 sm:px-5 ${article.image ? "sm:grid-cols-[104px_minmax(0,1fr)]" : ""}`}>
                         {article.image && (
                           <div className="aspect-[4/3] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
-                            <img src={article.image} alt={article.title} className="h-full w-full object-cover" />
+                            <img
+                              src={article.image}
+                              alt={article.title}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
                           </div>
                         )}
                         <div className="min-w-0">

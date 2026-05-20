@@ -89,7 +89,13 @@ export default async function SeriesPage() {
                       <div className={`grid gap-4 px-4 py-4 sm:px-5 ${article.image ? "sm:grid-cols-[104px_minmax(0,1fr)]" : ""}`}>
                         {article.image && (
                           <div className="aspect-[4/3] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
-                            <img src={article.image} alt={article.title} className="h-full w-full object-cover" />
+                            <img
+                              src={article.image}
+                              alt={article.title}
+                              loading="lazy"
+                              decoding="async"
+                              className="h-full w-full object-cover"
+                            />
                           </div>
                         )}
                         <div className="min-w-0">

@@ -2,7 +2,11 @@ import Link from "next/link";
 import type { Author } from "@/lib/cms";
 
 function avatarFor(author: Author) {
-  return author.avatar_url || author.avatar || "";
+  const url = author.avatar_url || author.avatar || "";
+  if (url && !url.startsWith("http") && !url.startsWith("/")) {
+    return `/${url}`;
+  }
+  return url;
 }
 
 export default function AuthorsStrip({ authors = [] }: { authors?: Author[] }) {
@@ -39,13 +43,28 @@ export default function AuthorsStrip({ authors = [] }: { authors?: Author[] }) {
                 style={{ background: "var(--card)" }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 overflow-hidden rounded-full border border-[#B8FF35]/25 bg-[#0F0F1A]">
+                  <div
+                    className="flex-shrink-0 rounded-full flex items-center justify-center text-sm font-bold"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      background: avatar ? undefined : "linear-gradient(135deg, #B8FF3520, #B8FF3560)",
+                      border: "1px solid #B8FF3530",
+                      overflow: "hidden",
+                    }}
+                  >
                     {avatar ? (
-                      <img src={avatar} alt={author.name} className="h-full w-full object-cover" />
+                      <img
+                        src={avatar}
+                        alt={author.name}
+                        loading="lazy"
+                        decoding="async"
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-sm font-bold text-[#B8FF35]">
-                        {author.name.charAt(0)}
-                      </div>
+                      <span style={{ color: "#B8FF35", fontFamily: "var(--font-syne)" }}>
+                        {author.name.charAt(0).toUpperCase()}
+                      </span>
                     )}
                   </div>
                   <div className="min-w-0">

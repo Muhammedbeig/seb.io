@@ -132,10 +132,10 @@ export default function Hero() {
 
             <div className="animate-fade-up animate-delay-5 mt-8 flex flex-wrap gap-3">
               <Link
-                href="/how-search-engine-works"
+                href="#main-guide"
                 className="btn-lime px-7 py-3.5 rounded-full text-sm"
               >
-                Start Reading -&gt;
+                Search Engine Basics -&gt;
               </Link>
               <Link href="/series" className="btn-ghost px-7 py-3.5 rounded-full text-sm">
                 Browse Series

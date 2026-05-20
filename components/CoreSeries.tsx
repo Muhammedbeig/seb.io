@@ -15,8 +15,8 @@ export default async function CoreSeries() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div>
             <span className="tag">Series</span>
-            <h2
-              className="mt-4 text-[#E8E8F0] leading-tight"
+            <span
+              className="block mt-4 text-[#E8E8F0] leading-tight"
               style={{
                 fontFamily: "var(--font-syne)",
                 fontSize: "clamp(2rem, 4vw, 3rem)",
@@ -25,17 +25,17 @@ export default async function CoreSeries() {
             >
               Read by topic.<br />
               <span className="text-stroke-white">Move in order.</span>
-            </h2>
+            </span>
           </div>
           <Link href="/series" className="btn-ghost text-sm px-5 py-2.5 rounded-full self-start md:self-auto">
             All Series -&gt;
           </Link>
         </div>
-
+ 
         <div className="space-y-10">
           {allSeries.map((series, seriesIndex) => {
             const accent = series.accent || "#B8FF35";
-
+ 
             return (
               <section key={series.id} className="overflow-hidden rounded-lg border border-[#1E1E30]">
                 <Link
@@ -58,9 +58,9 @@ export default async function CoreSeries() {
                         dangerouslySetInnerHTML={{ __html: series.icon }}
                       />
                     )}
-                    <h3 className="text-lg font-bold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
+                    <span className="text-lg font-bold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
                       {series.title}
-                    </h3>
+                    </span>
                     {series.isComingSoon && (
                       <span className="tag tag-cyan">
                         Coming Soon
@@ -71,13 +71,13 @@ export default async function CoreSeries() {
                     {series.isComingSoon && series.articles.length === 0 ? "Coming soon" : `${series.articles.length} articles`}
                   </span>
                 </Link>
-
+ 
                 {series.description && (
                   <p className="border-b border-[#1E1E30] px-4 py-3 text-sm leading-relaxed text-[#8F8FA3]">
                     {series.description}
                   </p>
                 )}
-
+ 
                 <div>
                   {series.isComingSoon && series.articles.length === 0 ? (
                     <div className="px-4 py-5 text-sm text-[#6B6B80]">
@@ -98,7 +98,13 @@ export default async function CoreSeries() {
                       <div className={`grid gap-4 px-4 py-4 ${article.image ? "sm:grid-cols-[92px_minmax(0,1fr)]" : ""}`}>
                         {article.image && (
                           <div className="aspect-[4/3] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
-                            <img src={article.image} alt={article.title} className="h-full w-full object-cover" />
+                            <img
+                              src={article.image}
+                              alt={article.title}
+                              loading="lazy"
+                              decoding="async"
+                              className="h-full w-full object-cover"
+                            />
                           </div>
                         )}
                         <div className="min-w-0">
@@ -106,8 +112,8 @@ export default async function CoreSeries() {
                             title={article.title}
                             excerpt={article.excerpt}
                             attributes={article.attributes}
-                            previewHeadings={article.previewHeadings}
                             compact
+                            titleTag="span"
                           />
                         </div>
                         <div className={`${article.image ? "sm:col-start-2" : ""} mt-0 flex items-center gap-3 text-xs text-[#6B6B80]`} style={{ fontFamily: "var(--font-dm-mono)" }}>
