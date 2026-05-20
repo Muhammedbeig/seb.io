@@ -47,7 +47,7 @@ function loadingForPath(pathname: string) {
 export default function RouteTransitionFallback() {
   const pathname = usePathname();
   const [pendingPath, setPendingPath] = useState<string | null>(null);
-  const pendingStartedAt = useRef(0);
+  const pendingMainSnapshot = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -73,7 +73,7 @@ export default function RouteTransitionFallback() {
       const currentPath = normalizePath(window.location.pathname);
       if (nextPath === currentPath) return;
 
-      pendingStartedAt.current = performance.now();
+      pendingMainSnapshot.current = getDirectMain() ?? null;
       setPendingPath(nextPath);
     };
 
@@ -92,9 +92,10 @@ export default function RouteTransitionFallback() {
       const currentPath = normalizePath(window.location.pathname);
       const directMain = getDirectMain();
       const mainHeight = directMain?.getBoundingClientRect().height ?? 0;
-      const visibleLongEnough = performance.now() - pendingStartedAt.current > 360;
+      const isNewMain = directMain !== null && directMain !== pendingMainSnapshot.current;
+      const isShowingRouteLoading = directMain?.hasAttribute("data-route-loading") ?? false;
 
-      if (currentPath === pendingPath && directMain && mainHeight > 0 && visibleLongEnough) {
+      if (currentPath === pendingPath && directMain && mainHeight > 0 && isNewMain && !isShowingRouteLoading) {
         stableFrames += 1;
         if (stableFrames >= 2) {
           window.clearTimeout(timeout);

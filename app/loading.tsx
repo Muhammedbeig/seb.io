@@ -2,7 +2,7 @@
 
 export default function Loading() {
   return (
-    <main className="min-h-screen bg-[#07070F] text-[#E8E8F0]">
+    <main data-route-loading="true" className="min-h-screen bg-[#07070F] text-[#E8E8F0]">
       <section className="relative flex min-h-screen items-center overflow-hidden pt-24 pb-16">
         <div className="absolute inset-0 grid-bg opacity-100 pointer-events-none" />
         <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-12 px-6 lg:grid-cols-2 lg:gap-8 lg:px-8">

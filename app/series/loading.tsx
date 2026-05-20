@@ -66,7 +66,7 @@ function SeriesBlockSkeleton({
 
 export default function SeriesLoading() {
   return (
-    <main className="min-h-screen bg-[#07070F] text-[#E8E8F0]">
+    <main data-route-loading="true" className="min-h-screen bg-[#07070F] text-[#E8E8F0]">
       {/* ── Hero header ── */}
       <section className="pt-32 pb-14 relative overflow-hidden">
         <div className="absolute inset-0 grid-bg opacity-100 pointer-events-none" />

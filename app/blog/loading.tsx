@@ -52,7 +52,7 @@ function SkeletonCard() {
 
 export default function Loading() {
   return (
-    <main>
+    <main data-route-loading="true">
       {/* ── Hero header ── */}
       <section className="pt-32 pb-16 relative overflow-hidden">
         <div className="absolute inset-0 grid-bg opacity-100 pointer-events-none" />

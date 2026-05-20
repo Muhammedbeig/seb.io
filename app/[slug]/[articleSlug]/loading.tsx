@@ -6,7 +6,7 @@ function SkeletonBar({ className = "" }: { className?: string }) {
 
 export default function ArticleLoading() {
   return (
-    <main className="min-h-screen bg-[#07070F] text-[#E8E8F0]">
+    <main data-route-loading="true" className="min-h-screen bg-[#07070F] text-[#E8E8F0]">
       {/* Article Header Skeleton */}
       <header className="pt-36 pb-12 relative overflow-hidden">
         <div className="absolute inset-0 grid-bg pointer-events-none" />

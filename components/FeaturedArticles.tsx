@@ -132,9 +132,10 @@ export default async function FeaturedArticles() {
                   </div>
                   <ArticlePeekCard
                     title={article.title}
+                    excerpt={article.excerpt}
                     compact
-                    minHeightClassName="min-h-[86px]"
-                    titleClassName="text-base font-bold text-[#E8E8F0] leading-snug group-hover:text-[#B8FF35] transition-colors duration-300 line-clamp-3"
+                    minHeightClassName="min-h-[110px]"
+                    titleClassName="text-base font-bold text-[#E8E8F0] leading-snug group-hover:text-[#B8FF35] transition-colors duration-300 line-clamp-2"
                     titleTag="span"
                   />
                 </div>
