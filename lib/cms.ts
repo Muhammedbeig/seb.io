@@ -233,8 +233,29 @@ function cmsBases(): string[] {
   return [base];
 }
 
+// Hostinger's LiteSpeed rejects Node.js 18+ TLS 1.3 handshakes with alert 80.
+// Force TLS 1.2 via a custom undici dispatcher for all CMS fetches.
+let cmsDispatcher: unknown = null;
+async function getCmsDispatcher() {
+  if (cmsDispatcher !== null) return cmsDispatcher;
+  try {
+    const undici = await import("undici");
+    cmsDispatcher = new undici.Agent({
+      connect: {
+        rejectUnauthorized: false,
+        maxVersion: "TLSv1.2",
+        minVersion: "TLSv1.2",
+      },
+    });
+  } catch {
+    cmsDispatcher = undefined;
+  }
+  return cmsDispatcher;
+}
+
 async function fetchCms<T>(path: string, init?: RequestInit): Promise<CmsResponse<T> | null> {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const dispatcher = await getCmsDispatcher();
 
   for (const base of cmsBases()) {
     const url = `${base}${normalizedPath}`;
@@ -243,11 +264,13 @@ async function fetchCms<T>(path: string, init?: RequestInit): Promise<CmsRespons
         ...init,
         headers: {
           Accept: "application/json",
+          "User-Agent": "Mozilla/5.0 (compatible; SEB-Frontend/1.0)",
           ...(init?.body ? { "Content-Type": "application/json" } : {}),
           ...(init?.headers ?? {}),
         },
         next: init?.method && init.method !== "GET" ? undefined : { revalidate: 300 },
-      } as RequestInit & { next?: { revalidate: number } });
+        ...(dispatcher ? { dispatcher } : {}),
+      } as RequestInit & { next?: { revalidate: number }; dispatcher?: unknown });
 
       if (!response.ok) {
         console.error(`[CMS] ${url} → HTTP ${response.status}`);
