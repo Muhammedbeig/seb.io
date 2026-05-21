@@ -101,6 +101,13 @@ type CmsResponse<T> = {
   seriesArticles?: ArticleSummary[];
 };
 
+type NextFetchInit = RequestInit & {
+  next?: {
+    revalidate?: number | false;
+    tags?: string[];
+  };
+};
+
 function articleHref(slug: string, categorySlug?: string | null): string {
   return categorySlug ? `/${categorySlug}/${slug}` : `/${slug}`;
 }
@@ -228,67 +235,132 @@ function parseHtmlWithToc(html: string): { content: string; toc: { id: string; t
 }
 
 function cmsBases(): string[] {
-  const configured = process.env.CMS_API_URL || process.env.NEXT_PUBLIC_CMS_API_URL;
-  const base = (configured || "http://localhost/PhpPanel/public/api").replace(/\/$/, "");
-  return [base];
+  const bases = new Set<string>();
+  const localBase = "http://localhost/PhpPanel/public/api";
+  const configuredBases = [process.env.CMS_API_URL, process.env.NEXT_PUBLIC_CMS_API_URL]
+    .filter((base): base is string => Boolean(base?.trim()))
+    .map((base) => base.replace(/\/$/, ""));
+
+  const addBase = (base: string) => {
+    if (!base) return;
+    bases.add(base);
+
+    if (process.env.CMS_ALLOW_HTTP_FALLBACK !== "0" && base.startsWith("https://")) {
+      bases.add(`http://${base.slice("https://".length)}`);
+    }
+  };
+
+  configuredBases.forEach(addBase);
+
+  if (!bases.size || process.env.CMS_INCLUDE_LOCAL_FALLBACKS === "1") {
+    addBase(localBase);
+    addBase("http://127.0.0.1:8000/api");
+  }
+
+  return Array.from(bases);
 }
 
-// Hostinger's server rejects Node.js TLS handshakes (alert 80) regardless of TLS version.
-// Bypass Node's TLS stack by spawning curl, which uses the system OpenSSL.
-async function curlRequest(url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; body: string }> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const exec = promisify(execFile);
+function cmsTimeoutMs(): number {
+  const timeout = Number(process.env.CMS_FETCH_TIMEOUT_MS);
+  return Number.isFinite(timeout) && timeout > 0 ? timeout : 8000;
+}
 
+function cmsRevalidateSeconds(): number {
+  const revalidate = Number(process.env.CMS_REVALIDATE_SECONDS);
+  return Number.isFinite(revalidate) && revalidate >= 0 ? revalidate : 300;
+}
+
+function cmsHeaders(input?: HeadersInit, hasBody: boolean = false): Headers {
+  const headers = new Headers(input);
+  if (!headers.has("Accept")) headers.set("Accept", "application/json");
+  if (hasBody && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  if (!headers.has("User-Agent")) headers.set("User-Agent", "searchenginebasics-website/1.0");
+  return headers;
+}
+
+const cmsWarnings = new Set<string>();
+
+function cmsDebugEnabled(): boolean {
+  return process.env.CMS_DEBUG === "1" || process.env.CMS_FETCH_WARNINGS === "1";
+}
+
+function describeCmsError(error: unknown): string {
+  if (error instanceof Error) {
+    if (error.name === "AbortError") return `timed out after ${cmsTimeoutMs()}ms`;
+    return error.message || error.name;
+  }
+  return String(error);
+}
+
+function warnCms(url: string, detail: string) {
+  if (!cmsDebugEnabled()) return;
+
+  const key = `${url}:${detail}`;
+  if (cmsWarnings.has(key)) return;
+  cmsWarnings.add(key);
+  console.warn(`[CMS] ${url} unavailable (${detail}); using fallback content when available.`);
+}
+
+async function cmsFetch(url: string, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), cmsTimeoutMs());
   const method = (init?.method || "GET").toUpperCase();
-  const args: string[] = [
-    "--silent",
-    "--show-error",
-    "--location",
-    "--max-time", "20",
-    "--insecure",
-    "--write-out", "\n__HTTP_STATUS__:%{http_code}",
-    "-X", method,
-    "-H", "Accept: application/json",
-    "-H", "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-  ];
+  const requestInit: NextFetchInit = {
+    ...init,
+    method,
+    headers: cmsHeaders(init?.headers, Boolean(init?.body)),
+    signal: controller.signal,
+  };
 
-  const extraHeaders = (init?.headers as Record<string, string> | undefined) || {};
-  for (const [k, v] of Object.entries(extraHeaders)) {
-    args.push("-H", `${k}: ${v}`);
+  if (method === "GET") {
+    requestInit.next = { revalidate: cmsRevalidateSeconds() };
   }
 
-  if (init?.body) {
-    args.push("-H", "Content-Type: application/json");
-    args.push("--data-raw", String(init.body));
+  try {
+    return await fetch(url, requestInit);
+  } finally {
+    clearTimeout(timeout);
   }
+}
 
-  args.push(url);
+const cmsResponseCache = new Map<string, Promise<CmsResponse<unknown> | null>>();
 
-  const { stdout } = await exec("curl", args, { maxBuffer: 50 * 1024 * 1024 });
-  const marker = "\n__HTTP_STATUS__:";
-  const idx = stdout.lastIndexOf(marker);
-  const status = idx >= 0 ? parseInt(stdout.slice(idx + marker.length).trim(), 10) : 0;
-  const body = idx >= 0 ? stdout.slice(0, idx) : stdout;
-  return { ok: status >= 200 && status < 300, status, body };
+function cmsCacheKey(path: string, init?: RequestInit): string | null {
+  const method = (init?.method || "GET").toUpperCase();
+  if (method !== "GET" || process.env.CMS_DISABLE_REQUEST_CACHE === "1") return null;
+  return path;
 }
 
 async function fetchCms<T>(path: string, init?: RequestInit): Promise<CmsResponse<T> | null> {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const cacheKey = cmsCacheKey(normalizedPath, init);
+
+  if (!cacheKey) return fetchCmsUncached<T>(normalizedPath, init);
+
+  const cached = cmsResponseCache.get(cacheKey);
+  if (cached) return cached as Promise<CmsResponse<T> | null>;
+
+  const request = fetchCmsUncached<T>(normalizedPath, init);
+  cmsResponseCache.set(cacheKey, request as Promise<CmsResponse<unknown> | null>);
+  return request;
+}
+
+async function fetchCmsUncached<T>(path: string, init?: RequestInit): Promise<CmsResponse<T> | null> {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   for (const base of cmsBases()) {
     const url = `${base}${normalizedPath}`;
     try {
-      const response = await curlRequest(url, init);
+      const response = await cmsFetch(url, init);
 
       if (!response.ok) {
-        console.error(`[CMS] ${url} → HTTP ${response.status}`);
+        warnCms(url, `HTTP ${response.status}`);
         continue;
       }
 
-      return JSON.parse(response.body) as CmsResponse<T>;
+      return (await response.json()) as CmsResponse<T>;
     } catch (err) {
-      console.error(`[CMS] fetch error for ${url}:`, err);
+      warnCms(url, describeCmsError(err));
     }
   }
 
@@ -397,7 +469,7 @@ export async function getBlogSummaries(limit?: number): Promise<BlogSummary[]> {
       : [];
 
   const normalized = cmsBlogs.map(normalizeBlog);
-  const articles = normalized;
+  const articles = normalized.length > 0 ? normalized : fallbackArticles;
 
   return typeof limit === "number" ? articles.slice(0, limit) : articles;
 }
@@ -581,9 +653,8 @@ export async function getSearchResults(query: string): Promise<BlogSummary[]> {
 export async function recordSearchQuery(query: string, resultsCount: number, path: string = "/search", source: string = "website") {
   for (const base of cmsBases()) {
     try {
-      await fetch(`${base}/site/search-query`, {
+      await cmsFetch(`${base}/site/search-query`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ query, page: path, source, results_count: resultsCount }),
       });
       break;

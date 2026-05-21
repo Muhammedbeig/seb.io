@@ -22,6 +22,12 @@
 .DS_Store
 *.pem
 
+# loose root-level draft/debug files
+/diagnose.mjs
+/excerptDesc.md
+/*.jpg
+/*.png
+
 # debug
 npm-debug.log*
 yarn-debug.log*

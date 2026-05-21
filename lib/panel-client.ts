@@ -1,7 +1,5 @@
 const panelApiBases = [
   process.env.NEXT_PUBLIC_CMS_API_URL,
-  "http://localhost/PhpPanel/public/api",
-  "http://127.0.0.1:8000/api",
 ].filter((base): base is string => Boolean(base));
 
 export async function postPanelApi(path: string, payload: unknown): Promise<{ ok: boolean; message: string }> {
