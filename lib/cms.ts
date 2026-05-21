@@ -265,11 +265,6 @@ function cmsTimeoutMs(): number {
   return Number.isFinite(timeout) && timeout > 0 ? timeout : 8000;
 }
 
-function cmsRevalidateSeconds(): number {
-  const revalidate = Number(process.env.CMS_REVALIDATE_SECONDS);
-  return Number.isFinite(revalidate) && revalidate >= 0 ? revalidate : 300;
-}
-
 function cmsHeaders(input?: HeadersInit, hasBody: boolean = false): Headers {
   const headers = new Headers(input);
   if (!headers.has("Accept")) headers.set("Accept", "application/json");
@@ -313,7 +308,7 @@ async function cmsFetch(url: string, init?: RequestInit): Promise<Response> {
   };
 
   if (method === "GET") {
-    requestInit.next = { revalidate: cmsRevalidateSeconds() };
+    requestInit.cache = "no-store";
   }
 
   try {
@@ -323,29 +318,7 @@ async function cmsFetch(url: string, init?: RequestInit): Promise<Response> {
   }
 }
 
-const cmsResponseCache = new Map<string, Promise<CmsResponse<unknown> | null>>();
-
-function cmsCacheKey(path: string, init?: RequestInit): string | null {
-  const method = (init?.method || "GET").toUpperCase();
-  if (method !== "GET" || process.env.CMS_DISABLE_REQUEST_CACHE === "1") return null;
-  return path;
-}
-
 async function fetchCms<T>(path: string, init?: RequestInit): Promise<CmsResponse<T> | null> {
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const cacheKey = cmsCacheKey(normalizedPath, init);
-
-  if (!cacheKey) return fetchCmsUncached<T>(normalizedPath, init);
-
-  const cached = cmsResponseCache.get(cacheKey);
-  if (cached) return cached as Promise<CmsResponse<T> | null>;
-
-  const request = fetchCmsUncached<T>(normalizedPath, init);
-  cmsResponseCache.set(cacheKey, request as Promise<CmsResponse<unknown> | null>);
-  return request;
-}
-
-async function fetchCmsUncached<T>(path: string, init?: RequestInit): Promise<CmsResponse<T> | null> {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   for (const base of cmsBases()) {
