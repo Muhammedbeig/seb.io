@@ -233,58 +233,44 @@ function cmsBases(): string[] {
   return [base];
 }
 
-// Hostinger LiteSpeed rejects Node.js 18+ TLS 1.3 handshakes (alert 80 / internal_error).
-// Use Node's https module directly with TLS 1.2 forced and a browser-like UA.
-async function httpsRequest(url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; text: () => Promise<string> }> {
-  const https = await import("node:https");
-  const http = await import("node:http");
-  const u = new URL(url);
-  const isHttps = u.protocol === "https:";
-  const mod = isHttps ? https : http;
-  const method = (init?.method || "GET").toUpperCase();
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    Connection: "close",
-    ...(init?.body ? { "Content-Type": "application/json" } : {}),
-    ...(init?.headers as Record<string, string> | undefined),
-  };
-  const body = init?.body as string | undefined;
+// Hostinger's server rejects Node.js TLS handshakes (alert 80) regardless of TLS version.
+// Bypass Node's TLS stack by spawning curl, which uses the system OpenSSL.
+async function curlRequest(url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; body: string }> {
+  const { execFile } = await import("node:child_process");
+  const { promisify } = await import("node:util");
+  const exec = promisify(execFile);
 
-  return new Promise((resolve, reject) => {
-    const req = mod.request(
-      url,
-      {
-        method,
-        headers,
-        ...(isHttps
-          ? {
-              rejectUnauthorized: false,
-              minVersion: "TLSv1.2" as const,
-              maxVersion: "TLSv1.2" as const,
-              servername: u.hostname,
-            }
-          : {}),
-      },
-      (res) => {
-        const chunks: Buffer[] = [];
-        res.on("data", (c) => chunks.push(Buffer.from(c)));
-        res.on("end", () => {
-          const text = Buffer.concat(chunks).toString("utf-8");
-          resolve({
-            ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
-            status: res.statusCode ?? 0,
-            text: () => Promise.resolve(text),
-          });
-        });
-        res.on("error", reject);
-      }
-    );
-    req.on("error", reject);
-    req.setTimeout(15000, () => req.destroy(new Error("CMS request timeout (15s)")));
-    if (body) req.write(body);
-    req.end();
-  });
+  const method = (init?.method || "GET").toUpperCase();
+  const args: string[] = [
+    "--silent",
+    "--show-error",
+    "--location",
+    "--max-time", "20",
+    "--insecure",
+    "--write-out", "\n__HTTP_STATUS__:%{http_code}",
+    "-X", method,
+    "-H", "Accept: application/json",
+    "-H", "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  ];
+
+  const extraHeaders = (init?.headers as Record<string, string> | undefined) || {};
+  for (const [k, v] of Object.entries(extraHeaders)) {
+    args.push("-H", `${k}: ${v}`);
+  }
+
+  if (init?.body) {
+    args.push("-H", "Content-Type: application/json");
+    args.push("--data-raw", String(init.body));
+  }
+
+  args.push(url);
+
+  const { stdout } = await exec("curl", args, { maxBuffer: 50 * 1024 * 1024 });
+  const marker = "\n__HTTP_STATUS__:";
+  const idx = stdout.lastIndexOf(marker);
+  const status = idx >= 0 ? parseInt(stdout.slice(idx + marker.length).trim(), 10) : 0;
+  const body = idx >= 0 ? stdout.slice(0, idx) : stdout;
+  return { ok: status >= 200 && status < 300, status, body };
 }
 
 async function fetchCms<T>(path: string, init?: RequestInit): Promise<CmsResponse<T> | null> {
@@ -293,15 +279,14 @@ async function fetchCms<T>(path: string, init?: RequestInit): Promise<CmsRespons
   for (const base of cmsBases()) {
     const url = `${base}${normalizedPath}`;
     try {
-      const response = await httpsRequest(url, init);
+      const response = await curlRequest(url, init);
 
       if (!response.ok) {
         console.error(`[CMS] ${url} → HTTP ${response.status}`);
         continue;
       }
 
-      const text = await response.text();
-      return JSON.parse(text) as CmsResponse<T>;
+      return JSON.parse(response.body) as CmsResponse<T>;
     } catch (err) {
       console.error(`[CMS] fetch error for ${url}:`, err);
     }
