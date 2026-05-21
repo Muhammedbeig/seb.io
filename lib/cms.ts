@@ -229,40 +229,34 @@ function parseHtmlWithToc(html: string): { content: string; toc: { id: string; t
 
 function cmsBases(): string[] {
   const configured = process.env.CMS_API_URL || process.env.NEXT_PUBLIC_CMS_API_URL;
-
-  if (configured) {
-    return [configured.replace(/\/$/, "")];
-  }
-
-  return [
-    "http://127.0.0.1:8000/api",
-    "http://localhost/PhpPanel/public/api",
-    "http://localhost/PhpPanel/api",
-  ];
+  const base = (configured || "http://localhost/PhpPanel/public/api").replace(/\/$/, "");
+  return [base];
 }
 
 async function fetchCms<T>(path: string, init?: RequestInit): Promise<CmsResponse<T> | null> {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   for (const base of cmsBases()) {
+    const url = `${base}${normalizedPath}`;
     try {
-      const response = await fetch(`${base}${normalizedPath}`, {
+      const response = await fetch(url, {
         ...init,
         headers: {
           Accept: "application/json",
           ...(init?.body ? { "Content-Type": "application/json" } : {}),
           ...(init?.headers ?? {}),
         },
-        next: init?.method && init.method !== "GET" ? undefined : { revalidate: 0 },
+        next: init?.method && init.method !== "GET" ? undefined : { revalidate: 300 },
       } as RequestInit & { next?: { revalidate: number } });
 
       if (!response.ok) {
+        console.error(`[CMS] ${url} → HTTP ${response.status}`);
         continue;
       }
 
       return (await response.json()) as CmsResponse<T>;
-    } catch {
-      // Try the next local/deployed CMS base.
+    } catch (err) {
+      console.error(`[CMS] fetch error for ${url}:`, err);
     }
   }
 
