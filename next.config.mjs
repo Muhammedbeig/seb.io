@@ -1,7 +1,3 @@
-// Hostinger's TLS config is incompatible with Node.js 18+ undici for server-to-server fetches.
-// Browsers handle it fine, but Node.js rejects the handshake with ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR.
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,

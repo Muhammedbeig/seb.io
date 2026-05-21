@@ -233,51 +233,75 @@ function cmsBases(): string[] {
   return [base];
 }
 
-// Hostinger's LiteSpeed rejects Node.js 18+ TLS 1.3 handshakes with alert 80.
-// Force TLS 1.2 via a custom undici dispatcher for all CMS fetches.
-let cmsDispatcher: unknown = null;
-async function getCmsDispatcher() {
-  if (cmsDispatcher !== null) return cmsDispatcher;
-  try {
-    const undici = await import("undici");
-    cmsDispatcher = new undici.Agent({
-      connect: {
-        rejectUnauthorized: false,
-        maxVersion: "TLSv1.2",
-        minVersion: "TLSv1.2",
+// Hostinger LiteSpeed rejects Node.js 18+ TLS 1.3 handshakes (alert 80 / internal_error).
+// Use Node's https module directly with TLS 1.2 forced and a browser-like UA.
+async function httpsRequest(url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; text: () => Promise<string> }> {
+  const https = await import("node:https");
+  const http = await import("node:http");
+  const u = new URL(url);
+  const isHttps = u.protocol === "https:";
+  const mod = isHttps ? https : http;
+  const method = (init?.method || "GET").toUpperCase();
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    Connection: "close",
+    ...(init?.body ? { "Content-Type": "application/json" } : {}),
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+  const body = init?.body as string | undefined;
+
+  return new Promise((resolve, reject) => {
+    const req = mod.request(
+      url,
+      {
+        method,
+        headers,
+        ...(isHttps
+          ? {
+              rejectUnauthorized: false,
+              minVersion: "TLSv1.2" as const,
+              maxVersion: "TLSv1.2" as const,
+              servername: u.hostname,
+            }
+          : {}),
       },
-    });
-  } catch {
-    cmsDispatcher = undefined;
-  }
-  return cmsDispatcher;
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (c) => chunks.push(Buffer.from(c)));
+        res.on("end", () => {
+          const text = Buffer.concat(chunks).toString("utf-8");
+          resolve({
+            ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
+            status: res.statusCode ?? 0,
+            text: () => Promise.resolve(text),
+          });
+        });
+        res.on("error", reject);
+      }
+    );
+    req.on("error", reject);
+    req.setTimeout(15000, () => req.destroy(new Error("CMS request timeout (15s)")));
+    if (body) req.write(body);
+    req.end();
+  });
 }
 
 async function fetchCms<T>(path: string, init?: RequestInit): Promise<CmsResponse<T> | null> {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const dispatcher = await getCmsDispatcher();
 
   for (const base of cmsBases()) {
     const url = `${base}${normalizedPath}`;
     try {
-      const response = await fetch(url, {
-        ...init,
-        headers: {
-          Accept: "application/json",
-          "User-Agent": "Mozilla/5.0 (compatible; SEB-Frontend/1.0)",
-          ...(init?.body ? { "Content-Type": "application/json" } : {}),
-          ...(init?.headers ?? {}),
-        },
-        next: init?.method && init.method !== "GET" ? undefined : { revalidate: 300 },
-        ...(dispatcher ? { dispatcher } : {}),
-      } as RequestInit & { next?: { revalidate: number }; dispatcher?: unknown });
+      const response = await httpsRequest(url, init);
 
       if (!response.ok) {
         console.error(`[CMS] ${url} → HTTP ${response.status}`);
         continue;
       }
 
-      return (await response.json()) as CmsResponse<T>;
+      const text = await response.text();
+      return JSON.parse(text) as CmsResponse<T>;
     } catch (err) {
       console.error(`[CMS] fetch error for ${url}:`, err);
     }
