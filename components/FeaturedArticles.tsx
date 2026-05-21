@@ -90,7 +90,7 @@ export default async function FeaturedArticles() {
                   previewHeadings={featured.previewHeadings}
                   minHeightClassName="min-h-[132px]"
                   titleClassName="text-xl sm:text-2xl font-extrabold text-[#E8E8F0] leading-tight group-hover:text-[#B8FF35] transition-colors duration-300"
-                  excerptClassName="mt-4 text-[#6B6B80] text-sm leading-relaxed line-clamp-3"
+                  excerptClassName="mt-4 text-[#6B6B80] text-sm leading-relaxed"
                   titleTag="span"
                 />
               </div>

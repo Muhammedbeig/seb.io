@@ -495,6 +495,37 @@ body {
 .prose-custom .citation-ref:hover .citation-popover,
 .prose-custom .citation-ref:focus-visible .citation-popover {
   display: block;
+  pointer-events: auto;
+}
+
+/* Invisible bridge fills the gap between popover bottom and the citation sup */
+.prose-custom .citation-ref:hover .citation-popover::before,
+.prose-custom .citation-ref:focus-visible .citation-popover::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: -10%;
+  width: 120%;
+  height: 1rem;
+}
+
+.prose-custom .citation-popover-link {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.45rem;
+  color: #4A7DFF;
+  font-family: var(--font-dm-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.prose-custom .citation-popover-link:hover {
+  color: #7AA7FF;
 }
 
 .prose-custom h2,

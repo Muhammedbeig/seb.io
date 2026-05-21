@@ -516,6 +516,13 @@ export default function ArticleContent({ html }: ArticleContentProps) {
 
     root.querySelectorAll<HTMLElement>(".custom-html-block[data-html-block]").forEach(mountHtmlBlock);
 
+    root.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((anchor) => {
+      if (!anchor.getAttribute("href")?.startsWith("#")) {
+        anchor.setAttribute("target", "_blank");
+        anchor.setAttribute("rel", "noopener noreferrer");
+      }
+    });
+
     const handleHtmlBlockMessage = (event: MessageEvent) => {
       if (!event.data || event.data.type !== "seb-html-block-height") return;
 
@@ -531,6 +538,18 @@ export default function ArticleContent({ html }: ArticleContentProps) {
     const handleCitationClick = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
+
+      // Popover external links take priority — open URL in new tab
+      const popoverLink = target.closest<HTMLElement>(".citation-popover-link");
+      if (popoverLink) {
+        const href = popoverLink.dataset.href;
+        if (href) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          window.open(href, "_blank", "noopener,noreferrer");
+        }
+        return;
+      }
 
       const link = target.closest<HTMLAnchorElement>('a.citation-ref[href^="#"]');
       if (!link) return;
