@@ -194,6 +194,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
                             excerpt={article.excerpt}
                             attributes={article.attributes}
                             previewHeadings={article.previewHeadings}
+                            titleTag="h2"
                           />
                         </div>
                         <div

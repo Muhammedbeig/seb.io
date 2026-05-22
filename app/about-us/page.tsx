@@ -95,9 +95,9 @@ export default async function AboutPage() {
 
             <div className="lg:col-span-2 space-y-5">
               <div className="rounded-2xl border border-[#1E1E30] p-7" style={{ background: "var(--card)" }}>
-                <h4 className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase mb-5" style={{ fontFamily: "var(--font-mono)" }}>
+                <p className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase mb-5" style={{ fontFamily: "var(--font-mono)" }}>
                   By the numbers
-                </h4>
+                </p>
                 {[
                   { label: "Articles published", value: `${articles.length}` },
                   { label: "Reading series", value: `${series.length}` },

@@ -68,22 +68,24 @@ export default function Footer({ series = [], authors = [] }: { series?: NavSeri
             </div>
           </div>
 
-          {Object.entries(footerLinks).map(([section, links]) => (
-            <div key={section}>
-              <h4 className="text-xs font-semibold text-[#E8E8F0] tracking-widest uppercase mb-4" style={{ fontFamily: "var(--font-syne)" }}>
-                {section}
-              </h4>
-              <ul className="space-y-2.5">
-                {links.map((link) => (
-                  <li key={link.href + link.label}>
-                    <Link href={link.href} className="text-xs text-[#6B6B80] hover:text-[#E8E8F0] transition-colors duration-200" style={{ fontFamily: "var(--font-dm-sans)" }}>
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <nav aria-label="Footer navigation" className="contents">
+            {Object.entries(footerLinks).map(([section, links]) => (
+              <div key={section}>
+                <p className="text-xs font-semibold text-[#E8E8F0] tracking-widest uppercase mb-4" style={{ fontFamily: "var(--font-syne)" }}>
+                  {section}
+                </p>
+                <ul className="space-y-2.5">
+                  {links.map((link) => (
+                    <li key={link.href + link.label}>
+                      <Link href={link.href} className="text-xs text-[#6B6B80] hover:text-[#E8E8F0] transition-colors duration-200" style={{ fontFamily: "var(--font-dm-sans)" }}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
         </div>
 
         <div className="mt-12 pt-8 border-t border-[#1E1E30] flex flex-col sm:flex-row items-center justify-between gap-3">

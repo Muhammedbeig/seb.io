@@ -65,9 +65,9 @@ export default function WhyReadHere() {
                   <div className="text-xs mb-3 text-[#B8FF35]" style={{ fontFamily: "var(--font-dm-mono)" }}>
                     {reason.icon}
                   </div>
-                  <h4 className="text-sm font-bold text-[#E8E8F0] mb-1.5" style={{ fontFamily: "var(--font-syne)" }}>
+                  <h3 className="text-sm font-bold text-[#E8E8F0] mb-1.5" style={{ fontFamily: "var(--font-syne)" }}>
                     {reason.title}
-                  </h4>
+                  </h3>
                   <p className="text-xs text-[#6B6B80] leading-relaxed" style={{ fontFamily: "var(--font-dm-sans)" }}>
                     {reason.desc}
                   </p>

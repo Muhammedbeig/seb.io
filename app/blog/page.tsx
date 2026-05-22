@@ -115,6 +115,7 @@ export default async function BlogPage() {
                     previewHeadings={post.previewHeadings}
                     titleClassName="text-base font-bold text-[#E8E8F0] leading-snug group-hover:text-[#B8FF35] transition-colors duration-300"
                     excerptClassName="mt-2 text-xs text-[#6B6B80] leading-relaxed line-clamp-3"
+                    titleTag="h2"
                   />
                 </div>
                 <div className="flex items-center justify-between mt-0 p-6 pt-4 border-t border-[#1E1E30]">

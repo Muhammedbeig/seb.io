@@ -13,7 +13,7 @@ type ArticlePeekCardProps = {
   minHeightClassName?: string;
   titleClassName?: string;
   excerptClassName?: string;
-  titleTag?: "h3" | "span";
+  titleTag?: "h2" | "h3" | "span";
 };
 
 export default function ArticlePeekCard({

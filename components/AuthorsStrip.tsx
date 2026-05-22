@@ -19,13 +19,13 @@ export default function AuthorsStrip({ authors = [] }: { authors?: Author[] }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
           <div>
             <span className="tag">Contributors</span>
-            <h2
+            <p
               className="mt-4 text-[#E8E8F0] leading-tight"
               style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(1.8rem, 4vw, 2.6rem)", fontWeight: 800 }}
             >
               Reviewed by people<br />
               <span className="text-stroke-white">who know the system.</span>
-            </h2>
+            </p>
           </div>
           <Link href="/authors" className="btn-ghost self-start rounded-full px-5 py-2.5 text-sm sm:self-auto">
             All Authors -&gt;

@@ -141,10 +141,12 @@ function ArticleSidePanel({
 }) {
   return (
     <div className={`rounded-lg border border-[#1E1E30] p-5 ${className}`} style={{ background: "var(--card)" }}>
-      <h4 className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase mb-4" style={{ fontFamily: "var(--font-dm-mono)" }}>
-        In this article
-      </h4>
-      <ArticleToc toc={toc} />
+      <nav aria-label="In this article">
+        <p className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase mb-4" style={{ fontFamily: "var(--font-dm-mono)" }}>
+          In this article
+        </p>
+        <ArticleToc toc={toc} />
+      </nav>
       <SeriesList articles={articles} title={seriesTitle} />
       <div className="section-line my-4" />
       <Link href="/blog" className="btn-ghost w-full py-2.5 rounded-full text-xs text-center block">
@@ -160,55 +162,57 @@ function SeriesList({ articles, title }: { articles: SidebarArticle[]; title: st
   return (
     <>
       <div className="section-line mt-5 mb-4" />
-      <div className="mb-4">
-        <h4 className="text-sm font-bold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
-          {title}
-        </h4>
-        <div className="mt-3 h-0.5 w-full bg-[#B8FF35]" />
-      </div>
-      <ul className={`divide-y divide-[#1E1E30] pr-1 ${articles.length > 3 ? "max-h-[15.25rem] overflow-y-auto" : ""}`}>
-        {articles.map((post) => (
-          <li key={post.href}>
-            <Link
-              href={post.href}
-              aria-current={post.isCurrent ? "page" : undefined}
-              className={`group relative flex gap-3 py-3 pl-2 pr-1 transition-colors ${
-                post.isCurrent
-                  ? "bg-[#B8FF35]/[0.06] before:absolute before:left-0 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#B8FF35]"
-                  : "hover:bg-[#0F0F1A]"
-              }`}
-            >
-              <span
-                className="mt-0.5 inline-flex h-7 w-7 flex-shrink-0 items-center justify-center text-[10px] font-bold"
-                style={{
-                  background: post.isCurrent ? "#B8FF35" : `${post.tagColor}22`,
-                  color: post.isCurrent ? "#07070F" : post.tagColor,
-                  fontFamily: "var(--font-dm-mono)",
-                  letterSpacing: "0.08em",
-                  borderRadius: "2px",
-                }}
+      <nav aria-label={title}>
+        <div className="mb-4">
+          <p className="text-sm font-bold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
+            {title}
+          </p>
+          <div className="mt-3 h-0.5 w-full bg-[#B8FF35]" />
+        </div>
+        <ul className={`divide-y divide-[#1E1E30] pr-1 ${articles.length > 3 ? "max-h-[15.25rem] overflow-y-auto" : ""}`}>
+          {articles.map((post) => (
+            <li key={post.href}>
+              <Link
+                href={post.href}
+                aria-current={post.isCurrent ? "page" : undefined}
+                className={`group relative flex gap-3 py-3 pl-2 pr-1 transition-colors ${
+                  post.isCurrent
+                    ? "bg-[#B8FF35]/[0.06] before:absolute before:left-0 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#B8FF35]"
+                    : "hover:bg-[#0F0F1A]"
+                }`}
               >
-                {post.label}
-              </span>
-              <span className="min-w-0">
                 <span
-                  className={`block text-sm font-semibold leading-snug transition-colors ${
-                    post.isCurrent ? "text-[#B8FF35]" : "text-[#E8E8F0] group-hover:text-[#B8FF35]"
-                  }`}
-                  style={{ fontFamily: "var(--font-syne)" }}
+                  className="mt-0.5 inline-flex h-7 w-7 flex-shrink-0 items-center justify-center text-[10px] font-bold"
+                  style={{
+                    background: post.isCurrent ? "#B8FF35" : `${post.tagColor}22`,
+                    color: post.isCurrent ? "#07070F" : post.tagColor,
+                    fontFamily: "var(--font-dm-mono)",
+                    letterSpacing: "0.08em",
+                    borderRadius: "2px",
+                  }}
                 >
-                  {post.title}
+                  {post.label}
                 </span>
-                {post.readTime && (
-                  <span className="mt-1 block text-[11px] text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
-                    {post.readTime}
+                <span className="min-w-0">
+                  <span
+                    className={`block text-sm font-semibold leading-snug transition-colors ${
+                      post.isCurrent ? "text-[#B8FF35]" : "text-[#E8E8F0] group-hover:text-[#B8FF35]"
+                    }`}
+                    style={{ fontFamily: "var(--font-syne)" }}
+                  >
+                    {post.title}
                   </span>
-                )}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+                  {post.readTime && (
+                    <span className="mt-1 block text-[11px] text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                      {post.readTime}
+                    </span>
+                  )}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </>
   );
 }
@@ -467,12 +471,12 @@ export default function ArticleLayout({
 
         <section className="pb-24">
           <div className="max-w-6xl mx-auto px-6 lg:px-8">
-            <div className="lg:hidden mb-8">
-              <ArticleSidePanel toc={toc} articles={sidebarArticles} seriesTitle={relatedSeriesTitle} />
-            </div>
+            <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
+              <aside className="lg:order-2 lg:col-span-1">
+                <ArticleSidePanel toc={toc} articles={sidebarArticles} seriesTitle={relatedSeriesTitle} />
+              </aside>
 
-            <div className="grid lg:grid-cols-3 gap-12">
-              <div className="min-w-0 lg:col-span-2">
+              <div className="min-w-0 lg:order-1 lg:col-span-2">
                 <article className="prose-custom min-w-0">
                   {children}
                 </article>
@@ -482,10 +486,10 @@ export default function ArticleLayout({
                 <ArticlePager previous={previousArticle} next={nextArticle} />
 
                 {hasContributors && (
-                  <div className="mt-12 rounded-lg border border-[#1E1E30] p-6 space-y-6" style={{ background: "var(--card)" }}>
-                    <h4 className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                  <section className="mt-12 rounded-lg border border-[#1E1E30] p-6 space-y-6" style={{ background: "var(--card)" }} aria-labelledby="about-contributors">
+                    <h2 id="about-contributors" className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase" style={{ fontFamily: "var(--font-dm-mono)" }}>
                       About the Contributors
-                    </h4>
+                    </h2>
 
                     {author && (
                       <div>
@@ -516,15 +520,11 @@ export default function ArticleLayout({
                         <ContributorGroup label="Edited by" authors={editors} />
                       </>
                     )}
-                  </div>
+                  </section>
                 )}
 
                 <ArticleFaqSection faqs={faqs} />
               </div>
-
-              <aside className="hidden lg:block lg:col-span-1">
-                <ArticleSidePanel toc={toc} articles={sidebarArticles} seriesTitle={relatedSeriesTitle} />
-              </aside>
             </div>
           </div>
         </section>

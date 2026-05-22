@@ -58,6 +58,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
                         minHeightClassName="min-h-[70px]"
                         titleClassName="text-xl text-[#4A4AFF] group-hover:underline mb-1.5"
                         excerptClassName="text-sm text-[#9090A8] leading-relaxed line-clamp-2"
+                        titleTag="h2"
                       />
                     </Link>
                   </div>
