@@ -1,5 +1,6 @@
 import PageShell from "@/components/PageShell";
 import Link from "next/link";
+import Image from "next/image";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
 import { getBlogSummaries } from "@/lib/cms";
 
@@ -77,12 +78,12 @@ export default async function BlogPage() {
                 style={{ background: "var(--card)", minHeight: "280px" }}
               >
                 {post.image && (
-                  <div className="aspect-[16/8] overflow-hidden border-b border-[#1E1E30] bg-[#0F0F1A]">
-                    <img
+                  <div className="relative aspect-[16/8] overflow-hidden border-b border-[#1E1E30] bg-[#0F0F1A]">
+                    <Image
                       src={post.image}
                       alt={post.title}
-                      loading="lazy"
-                      decoding="async"
+                      fill
+                      sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                     />
                   </div>

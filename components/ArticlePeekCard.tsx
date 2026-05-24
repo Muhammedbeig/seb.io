@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ArticleAttributeChips from "@/components/ArticleAttributeChips";
 import type { ArticleAttribute } from "@/lib/cms";
 
@@ -27,16 +27,41 @@ export default function ArticlePeekCard({
   excerptClassName,
   titleTag = "h3",
 }: ArticlePeekCardProps) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const phrases = useMemo(
     () => [title, ...previewHeadings.filter(Boolean).slice(0, 5)],
     [title, previewHeadings],
   );
+  const [isActive, setIsActive] = useState(phrases.length <= 1);
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [charCount, setCharCount] = useState(title.length);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    if (phrases.length <= 1) {
+    if (phrases.length <= 1 || isActive) return;
+
+    const element = rootRef.current;
+    if (!element || !("IntersectionObserver" in window)) {
+      setIsActive(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsActive(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "160px 0px" },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [isActive, phrases.length]);
+
+  useEffect(() => {
+    if (phrases.length <= 1 || !isActive) {
       setPhraseIndex(0);
       setCharCount(title.length);
       setDeleting(false);
@@ -64,13 +89,14 @@ export default function ArticlePeekCard({
     }, delay);
 
     return () => window.clearTimeout(timer);
-  }, [charCount, deleting, phraseIndex, phrases, title]);
+  }, [charCount, deleting, isActive, phraseIndex, phrases, title]);
 
   useEffect(() => {
     setPhraseIndex(0);
     setCharCount(title.length);
     setDeleting(false);
-  }, [title]);
+    setIsActive(phrases.length <= 1);
+  }, [phrases.length, title]);
 
   const activePhrase = phrases[phraseIndex] || title;
   const animatedTitle = phrases.length > 1 ? activePhrase.slice(0, charCount) : title;
@@ -81,7 +107,7 @@ export default function ArticlePeekCard({
   const Tag = titleTag;
 
   return (
-    <div className="min-w-0">
+    <div ref={rootRef} className="min-w-0">
       <div className={minHeightClassName || (compact ? "min-h-[78px]" : "min-h-[104px]")}>
         <Tag
           aria-label={title}

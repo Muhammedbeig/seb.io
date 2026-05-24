@@ -1,5 +1,6 @@
 import PageShell from "@/components/PageShell";
 import Link from "next/link";
+import Image from "next/image";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
 import { getSeries } from "@/lib/cms";
 
@@ -88,12 +89,12 @@ export default async function SeriesPage() {
                       </div>
                       <div className={`grid gap-4 px-4 py-4 sm:px-5 ${article.image ? "sm:grid-cols-[104px_minmax(0,1fr)]" : ""}`}>
                         {article.image && (
-                          <div className="aspect-[4/3] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
-                            <img
+                          <div className="relative aspect-[4/3] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
+                            <Image
                               src={article.image}
                               alt={article.title}
-                              loading="lazy"
-                              decoding="async"
+                              fill
+                              sizes="(min-width: 640px) 104px, 100vw"
                               className="h-full w-full object-cover"
                             />
                           </div>

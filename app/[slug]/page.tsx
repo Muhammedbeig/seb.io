@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import ArticleContent from "@/components/ArticleContent";
 import ArticleLayout from "@/components/ArticleLayout";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
@@ -124,13 +125,14 @@ export default async function DynamicSlugPage({ params }: PageProps) {
                 </div>
 
                 {series.image && (
-                  <div className="overflow-hidden rounded-lg border border-[#1E1E30] aspect-[4/3]">
-                    <img
+                  <div className="relative overflow-hidden rounded-lg border border-[#1E1E30] aspect-[4/3]">
+                    <Image
                       src={series.image}
                       alt={series.title}
+                      fill
+                      priority
+                      sizes="(min-width: 1024px) 360px, 100vw"
                       className="h-full w-full object-cover"
-                      fetchPriority="high"
-                      decoding="async"
                     />
                   </div>
                 )}
@@ -178,13 +180,13 @@ export default async function DynamicSlugPage({ params }: PageProps) {
                       </div>
                       <div className={`grid gap-4 px-4 py-4 sm:px-5 ${article.image ? "sm:grid-cols-[104px_minmax(0,1fr)]" : ""}`}>
                         {article.image && (
-                          <div className="aspect-[4/3] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
-                            <img
+                          <div className="relative aspect-[4/3] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
+                            <Image
                               src={article.image}
                               alt={article.title}
+                              fill
+                              sizes="(min-width: 640px) 104px, 100vw"
                               className="h-full w-full object-cover"
-                              loading="lazy"
-                              decoding="async"
                             />
                           </div>
                         )}

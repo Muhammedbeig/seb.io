@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
 import PageShell from "@/components/PageShell";
 import { getAuthor } from "@/lib/cms";
@@ -103,12 +104,12 @@ export default async function AuthorPage({ params }: PageProps) {
                       style={{ background: "var(--card)" }}
                     >
                         {article.image && (
-                          <div className="mb-4 aspect-[16/8] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
-                          <img
+                          <div className="relative mb-4 aspect-[16/8] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
+                          <Image
                             src={article.image}
                             alt={article.title}
-                            loading="lazy"
-                            decoding="async"
+                            fill
+                            sizes="(min-width: 768px) 50vw, 100vw"
                             className="h-full w-full object-cover"
                           />
                           </div>
