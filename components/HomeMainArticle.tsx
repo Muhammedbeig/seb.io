@@ -1,9 +1,9 @@
 import HomeArticleExpandable from "@/components/HomeArticleExpandable";
-import { getSiteSettings } from "@/lib/cms";
+import { getHomeMainArticleSettings } from "@/lib/cms";
 import { renderHomeMarkdown } from "@/lib/homeMarkdown";
 
 export default async function HomeMainArticle() {
-  const settings = await getSiteSettings();
+  const settings = await getHomeMainArticleSettings();
   const { initialHtml, restHtml } = renderHomeMarkdown(settings.home_main_article_markdown);
 
   if (!initialHtml) {

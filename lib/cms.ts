@@ -84,6 +84,10 @@ export type SiteSettings = {
   home_main_article_markdown?: string | null;
 };
 
+export type HomeMainArticleSettings = {
+  home_main_article_markdown?: string | null;
+};
+
 export type CompanyPage = {
   title: string;
   slug: string;
@@ -237,6 +241,9 @@ function parseHtmlWithToc(html: string): { content: string; toc: { id: string; t
 function cmsBases(): string[] {
   const bases = new Set<string>();
   const localBase = "http://localhost/PhpPanel/public/api";
+  const allowHttpFallback =
+    process.env.CMS_ALLOW_HTTP_FALLBACK === "1" ||
+    (process.env.NODE_ENV !== "production" && process.env.CMS_ALLOW_HTTP_FALLBACK !== "0");
   const configuredBases = [process.env.CMS_API_URL, process.env.NEXT_PUBLIC_CMS_API_URL]
     .filter((base): base is string => Boolean(base?.trim()))
     .map((base) => base.replace(/\/$/, ""));
@@ -245,7 +252,7 @@ function cmsBases(): string[] {
     if (!base) return;
     bases.add(base);
 
-    if (process.env.CMS_ALLOW_HTTP_FALLBACK !== "0" && base.startsWith("https://")) {
+    if (allowHttpFallback && base.startsWith("https://")) {
       bases.add(`http://${base.slice("https://".length)}`);
     }
   };
@@ -263,6 +270,11 @@ function cmsBases(): string[] {
 function cmsTimeoutMs(): number {
   const timeout = Number(process.env.CMS_FETCH_TIMEOUT_MS);
   return Number.isFinite(timeout) && timeout > 0 ? timeout : 8000;
+}
+
+function cmsRevalidateSeconds(): number {
+  const revalidate = Number(process.env.CMS_REVALIDATE_SECONDS);
+  return Number.isFinite(revalidate) && revalidate >= 0 ? revalidate : 60;
 }
 
 function cmsHeaders(input?: HeadersInit, hasBody: boolean = false): Headers {
@@ -308,7 +320,12 @@ async function cmsFetch(url: string, init?: RequestInit): Promise<Response> {
   };
 
   if (method === "GET") {
-    requestInit.cache = "no-store";
+    const existingTags = requestInit.next?.tags ?? [];
+    requestInit.next = {
+      ...requestInit.next,
+      revalidate: requestInit.next?.revalidate ?? cmsRevalidateSeconds(),
+      tags: Array.from(new Set([...existingTags, "cms"])),
+    };
   }
 
   try {
@@ -511,6 +528,11 @@ export async function getBlogArticle(slug: string): Promise<BlogArticle | null> 
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   const response = await fetchCms<SiteSettings>(`/site/settings`);
+  return response?.data ?? {};
+}
+
+export async function getHomeMainArticleSettings(): Promise<HomeMainArticleSettings> {
+  const response = await fetchCms<HomeMainArticleSettings>(`/site/home-main-article`);
   return response?.data ?? {};
 }
 
