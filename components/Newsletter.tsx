@@ -136,9 +136,9 @@ export default function Newsletter() {
                     <polyline points="4,12 9,17 20,6" stroke="#B8FF35" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-[#E8E8F0] mb-2" style={{ fontFamily: "var(--font-syne)" }}>
+                <h2 className="text-2xl font-bold text-[#E8E8F0] mb-2" style={{ fontFamily: "var(--font-syne)" }}>
                   You are in!
-                </h3>
+                </h2>
                 <p className="text-[#6B6B80] text-sm" style={{ fontFamily: "var(--font-dm-sans)" }}>
                   Your first issue lands next week. Until then, open a series.
                 </p>

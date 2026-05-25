@@ -18,6 +18,10 @@ function scrollToHeading(id: string, behavior: ScrollBehavior = "smooth") {
   const element = document.getElementById(id);
   if (!element) return;
 
+  if (element instanceof HTMLDetailsElement) {
+    element.open = true;
+  }
+
   const top = window.scrollY + element.getBoundingClientRect().top - anchorOffset;
   window.scrollTo({ top, behavior });
 }
@@ -64,7 +68,7 @@ export default function ArticleToc({ toc }: ArticleTocProps) {
   }
 
   return (
-    <ul className={`space-y-1.5 pr-1 ${toc.length > 4 ? "max-h-[12.75rem] overflow-y-auto" : ""}`}>
+    <ul className={`space-y-1.5 pr-1 ${toc.length > 4 ? "max-h-[18rem] overflow-y-auto" : ""}`}>
       {toc.map((item) => {
         const isActive = item.id === activeId;
 
@@ -72,6 +76,7 @@ export default function ArticleToc({ toc }: ArticleTocProps) {
           <li key={item.id}>
             <a
               href={`#${item.id}`}
+              aria-current={isActive ? "location" : undefined}
               onClick={(event) => {
                 event.preventDefault();
                 window.history.replaceState(null, "", `#${item.id}`);

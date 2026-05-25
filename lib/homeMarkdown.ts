@@ -1,6 +1,13 @@
 type RenderedMarkdown = {
-  initialHtml: string;
-  restHtml: string;
+  introHtml: string;
+  sections: HomeMarkdownSection[];
+  fallbackHtml: string;
+};
+
+export type HomeMarkdownSection = {
+  id: string;
+  title: string;
+  html: string;
 };
 
 function escapeHtml(input: string) {
@@ -19,6 +26,34 @@ function inlineMarkdown(input: string) {
   html = html.replace(/(^|[\s(])\*(?!\s)(.+?)(?<!\s)\*/g, "$1<em>$2</em>");
 
   return html;
+}
+
+function plainMarkdownText(input: string) {
+  return input
+    .replace(/\[([^\]]+)\]\((?:https?:\/\/)?[^)\s]+[^)]*\)/g, "$1")
+    .replace(/[*_`#]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function slugify(input: string) {
+  return plainMarkdownText(input)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "") || "section";
+}
+
+function uniqueId(base: string, usedIds: Set<string>) {
+  let id = base;
+  let index = 2;
+
+  while (usedIds.has(id)) {
+    id = `${base}-${index}`;
+    index += 1;
+  }
+
+  usedIds.add(id);
+  return id;
 }
 
 function isTableSeparator(line: string) {
@@ -131,17 +166,31 @@ function renderLines(lines: string[]) {
   return html.join("");
 }
 
-export function renderHomeMarkdown(markdown?: string | null): RenderedMarkdown {
-  if (!markdown?.trim()) {
-    return { initialHtml: "", restHtml: "" };
+function headingLevel(line: string) {
+  const match = /^(#{1,6})\s+/.exec(line.trim());
+  return match ? match[1].length : null;
+}
+
+function majorHeadingLevel(lines: string[]) {
+  const levels = lines
+    .map(headingLevel)
+    .filter((level): level is number => level !== null);
+
+  if (levels.includes(2)) return 2;
+  return levels.length > 0 ? Math.min(...levels) : null;
+}
+
+function splitMarkdownIntoSections(lines: string[]) {
+  const sectionLevel = majorHeadingLevel(lines);
+  if (sectionLevel === null) {
+    return { preamble: [lines], headingSections: [], sectionLevel };
   }
 
-  const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
   const sections: string[][] = [];
   let current: string[] = [];
 
   for (const line of lines) {
-    if (/^#{1,6}\s+/.test(line.trim()) && current.length > 0) {
+    if (headingLevel(line) === sectionLevel && current.length > 0) {
       sections.push(current);
       current = [line];
       continue;
@@ -154,14 +203,51 @@ export function renderHomeMarkdown(markdown?: string | null): RenderedMarkdown {
     sections.push(current);
   }
 
-  const firstHeadingIndex = sections.findIndex((section) => section.some((line) => /^#{1,6}\s+/.test(line.trim())));
+  const firstHeadingIndex = sections.findIndex((section) => section.some((line) => headingLevel(line) === sectionLevel));
   const preamble = firstHeadingIndex > 0 ? sections.slice(0, firstHeadingIndex) : [];
   const headingSections = firstHeadingIndex >= 0 ? sections.slice(firstHeadingIndex) : sections;
+
+  return { preamble, headingSections, sectionLevel };
+}
+
+function renderGuideSections(headingSections: string[][], sectionLevel: number | null): HomeMarkdownSection[] {
+  const usedIds = new Set<string>();
+
+  return headingSections
+    .map((section) => {
+      const headingIndex = section.findIndex((line) => headingLevel(line) === sectionLevel);
+      if (headingIndex < 0) return null;
+
+      const headingLine = section[headingIndex];
+      const match = /^(#{1,6})\s+(.+)$/.exec(headingLine.trim());
+      if (!match) return null;
+
+      const rawTitle = match[2].trim();
+      const id = uniqueId(slugify(rawTitle), usedIds);
+      const contentLines = section.slice(headingIndex + 1);
+
+      return {
+        id,
+        title: plainMarkdownText(rawTitle),
+        html: renderLines(contentLines),
+      };
+    })
+    .filter((section): section is HomeMarkdownSection => Boolean(section));
+}
+
+export function renderHomeMarkdown(markdown?: string | null): RenderedMarkdown {
+  if (!markdown?.trim()) {
+    return { introHtml: "", sections: [], fallbackHtml: "" };
+  }
+
+  const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
+  const { preamble, headingSections, sectionLevel } = splitMarkdownIntoSections(lines);
   const initialSections = [...preamble, ...headingSections.slice(0, 2)];
-  const restSections = headingSections.slice(2);
+  const guideSections = renderGuideSections(headingSections, sectionLevel);
 
   return {
-    initialHtml: renderLines(initialSections.flat()),
-    restHtml: renderLines(restSections.flat()),
+    introHtml: renderLines(preamble.flat()),
+    sections: guideSections,
+    fallbackHtml: renderLines(initialSections.flat()),
   };
 }

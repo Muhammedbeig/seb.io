@@ -73,9 +73,9 @@ export default function ShareButtons({ links, title }: { links?: ShareLinks; tit
             {/* Header */}
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-bold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
+                <h2 className="text-lg font-bold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
                   Share via {currentPlatformInfo?.label}
-                </h3>
+                </h2>
                 <p className="mt-1.5 text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-sans)" }}>
                   Here is your custom database-tracked short link for sharing:
                 </p>
