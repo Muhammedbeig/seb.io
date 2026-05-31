@@ -35,6 +35,63 @@ function skeletonMarkup() {
   `;
 }
 
+function escapeCodeText(value: string) {
+  return String(value || "").replace(/[&<>"']/g, (char) => {
+    return {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    }[char] as string;
+  });
+}
+
+function highlightCodeLine(value: string) {
+  const keywords = /^(async|await|break|case|catch|class|const|continue|def|default|delete|do|elif|else|except|export|extends|finally|for|from|function|if|import|in|interface|let|new|return|try|type|var|while|with|yield)$/;
+  const literals = /^(false|null|none|self|this|true|undefined|False|None|True)$/;
+  const tokenPattern = /(&lt;\/?[a-zA-Z][^&]*?&gt;|\/\*[\s\S]*?\*\/|\/\/[^\n]*|#[^\n]*|&quot;(?:\\.|(?!&quot;).)*&quot;|&#039;(?:\\.|(?!&#039;).)*&#039;|`(?:\\.|[^`\\])*`|\b[A-Za-z_$][\w$]*(?=\s*:)|\b[A-Za-z_$][\w$]*\b|\b\d+(?:\.\d+)?\b|&lt;=?|&gt;=?|&amp;&amp;|\|\||[{}()[\],.;:+\-*/=%!&|?])/g;
+
+  return escapeCodeText(value).replace(tokenPattern, (token) => {
+    let className = "code-punctuation";
+
+    if (/^(\/\*|\/\/|#)/.test(token)) {
+      className = "code-comment";
+    } else if (/^(&quot;|&#039;|`)/.test(token)) {
+      className = "code-string";
+    } else if (/^&lt;\/?[a-zA-Z]/.test(token)) {
+      className = "code-tag";
+    } else if (/^\d/.test(token)) {
+      className = "code-number";
+    } else if (keywords.test(token)) {
+      className = "code-keyword";
+    } else if (literals.test(token)) {
+      className = "code-literal";
+    } else if (/^[A-Za-z_$][\w$]*$/.test(token)) {
+      className = "code-property";
+    }
+
+    return `<span class="code-token ${className}">${token}</span>`;
+  });
+}
+
+function highlightCodeText(value: string) {
+  return String(value || "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => `<span class="code-line">${highlightCodeLine(line || " ")}</span>`)
+    .join("\n");
+}
+
+function highlightCodeBlocks(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>("pre.block-code code").forEach((code) => {
+    if (code.dataset.highlighted === "true") return;
+
+    code.innerHTML = highlightCodeText(code.textContent || "");
+    code.dataset.highlighted = "true";
+  });
+}
+
 function iframeDocument(html: string) {
   return `<!doctype html>
 <html>
@@ -513,6 +570,8 @@ export default function ArticleContent({ html }: ArticleContentProps) {
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
+
+    highlightCodeBlocks(root);
 
     root.querySelectorAll<HTMLElement>(".custom-html-block[data-html-block]").forEach(mountHtmlBlock);
 
