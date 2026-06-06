@@ -11,6 +11,7 @@ RESTART_MODE="${RESTART_MODE:-passenger}"
 PM2_APP_NAME="${PM2_APP_NAME:-}"
 KEEP_RELEASES="${KEEP_RELEASES:-5}"
 NEXT_BUILD_CPUS="${NEXT_BUILD_CPUS:-1}"
+ARTIFACT_PATH="${ARTIFACT_PATH:-}"
 
 RELEASES_DIR="$APP_DIR/releases"
 SHARED_DIR="$APP_DIR/shared"
@@ -80,9 +81,14 @@ cleanup_failed_release() {
 
 trap cleanup_failed_release ERR
 
-require_command git
 require_command "$NODE_BIN"
-require_command "$NPM_BIN"
+
+if [ -n "$ARTIFACT_PATH" ]; then
+  require_command tar
+else
+  require_command git
+  require_command "$NPM_BIN"
+fi
 
 export PATH="$(dirname "$NODE_BIN"):$PATH"
 export NEXT_BUILD_CPUS
@@ -93,8 +99,19 @@ if [ -L "$CURRENT_LINK" ]; then
   PREVIOUS_RELEASE="$(readlink "$CURRENT_LINK" || true)"
 fi
 
-log "Deploying $APP_NAME from $REPO_URL#$BRANCH into $RELEASE_DIR"
-git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$RELEASE_DIR"
+if [ -n "$ARTIFACT_PATH" ]; then
+  if [ ! -f "$ARTIFACT_PATH" ]; then
+    printf 'Missing frontend artifact: %s\n' "$ARTIFACT_PATH" >&2
+    exit 1
+  fi
+
+  log "Deploying $APP_NAME artifact into $RELEASE_DIR"
+  mkdir -p "$RELEASE_DIR"
+  tar -xzf "$ARTIFACT_PATH" -C "$RELEASE_DIR"
+else
+  log "Deploying $APP_NAME from $REPO_URL#$BRANCH into $RELEASE_DIR"
+  git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$RELEASE_DIR"
+fi
 
 cd "$RELEASE_DIR"
 
@@ -106,8 +123,16 @@ if [ -f "$SHARED_DIR/.env.local" ]; then
   ln -sfn "$SHARED_DIR/.env.local" .env.local
 fi
 
-"$NPM_BIN" ci
-"$NPM_BIN" run build
+if [ -z "$ARTIFACT_PATH" ]; then
+  "$NPM_BIN" ci
+  "$NPM_BIN" run build
+fi
+
+if [ ! -f "$RELEASE_DIR/server.js" ] || [ ! -d "$RELEASE_DIR/.next" ] || [ ! -d "$RELEASE_DIR/node_modules" ]; then
+  printf 'Frontend release artifact is incomplete.\n' >&2
+  exit 1
+fi
+
 mkdir -p tmp
 touch "$RELEASE_DIR/.deploy-complete"
 

@@ -4,6 +4,8 @@ This repo deploys to Hostinger through `.github/workflows/deploy-hostinger.yml`.
 
 The workflow runs on `main` pushes and manual `workflow_dispatch`. If SSH secrets are not configured, it exits successfully without deploying.
 
+GitHub Actions builds the Next.js app and uploads a compiled release artifact. Hostinger only extracts the artifact into a new release folder, updates the `current` symlink, and restarts Passenger. This keeps Next/SWC build CPU and process load off the shared Hostinger server.
+
 ## GitHub Secrets
 
 Required:
@@ -18,6 +20,7 @@ Required:
 Optional:
 
 - `FRONTEND_APP_DIR`: defaults to `~/apps/seb.io`
+- `FRONTEND_ENV_PRODUCTION`: full production `.env.production` content used by GitHub Actions during `next build`
 - `FRONTEND_NODE_BIN`: defaults to `/opt/alt/alt-nodejs22/root/bin/node`
 - `FRONTEND_NPM_BIN`: defaults to `/opt/alt/alt-nodejs22/root/bin/npm`
 - `FRONTEND_RESTART_MODE`: defaults to `passenger`
@@ -53,6 +56,6 @@ PassengerRestartDir /home/u680035976/apps/seb.io/current/tmp
 
 Keep the existing `SetEnv` and rewrite/security lines already present in `.htaccess`.
 
-The deploy script creates a new release under `~/apps/seb.io/releases`, builds it, switches `current` only after the build succeeds, then restarts Passenger by touching `current/tmp/restart.txt`.
+The deploy script creates a new release under `~/apps/seb.io/releases`, extracts the prebuilt artifact, switches `current` only after the release is complete, then restarts Passenger by touching `current/tmp/restart.txt`.
 
 Rollback is automatic when `FRONTEND_HEALTH_URL` is set and the health check fails.

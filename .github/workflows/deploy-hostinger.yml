@@ -17,6 +17,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build release artifact
+        env:
+          FRONTEND_ENV_PRODUCTION: ${{ secrets.FRONTEND_ENV_PRODUCTION }}
+          NEXT_BUILD_CPUS: 2
+        run: |
+          set -euo pipefail
+
+          if [ -n "${FRONTEND_ENV_PRODUCTION}" ]; then
+            printf '%s\n' "$FRONTEND_ENV_PRODUCTION" > .env.production
+          fi
+
+          npm ci
+          npm run build
+          rm -rf .next/cache
+          npm prune --omit=dev
+          tar -czf seb-frontend-release.tgz .next node_modules package.json package-lock.json next.config.mjs server.js public
+
       - name: Deploy over SSH
         env:
           SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
@@ -59,13 +82,16 @@ jobs:
           fi
 
           remote_script="/tmp/seb-frontend-deploy-${GITHUB_RUN_ID}.sh"
+          remote_artifact="/tmp/seb-frontend-release-${GITHUB_RUN_ID}.tgz"
           "${SCP[@]}" deploy/hostinger-frontend.sh "$SSH_USER@$SSH_HOST:$remote_script"
+          "${SCP[@]}" seb-frontend-release.tgz "$SSH_USER@$SSH_HOST:$remote_artifact"
 
           remote_env=(
             "APP_NAME=seb.io"
             "REPO_URL=https://github.com/Muhammedbeig/seb.io.git"
             "BRANCH=main"
             "GITHUB_SHA=$GITHUB_SHA"
+            "ARTIFACT_PATH=$remote_artifact"
           )
 
           [ -n "${FRONTEND_APP_DIR}" ] && remote_env+=("APP_DIR=$FRONTEND_APP_DIR")
@@ -80,4 +106,4 @@ jobs:
           printf -v remote_prefix '%q ' "${remote_env[@]}"
 
           "${SSH[@]}" "$SSH_USER@$SSH_HOST" \
-            "chmod +x '$remote_script' && ${remote_prefix}bash '$remote_script'; status=\$?; rm -f '$remote_script'; exit \$status"
+            "chmod +x '$remote_script' && ${remote_prefix}bash '$remote_script'; status=\$?; rm -f '$remote_script' '$remote_artifact'; exit \$status"
