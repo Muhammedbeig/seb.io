@@ -83,12 +83,89 @@ function highlightCodeText(value: string) {
     .join("\n");
 }
 
+function readableCodeText(code: HTMLElement) {
+  if (code.innerText) {
+    return code.innerText;
+  }
+
+  const clone = code.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll("br").forEach((breakElement) => {
+    breakElement.replaceWith("\n");
+  });
+
+  return clone.textContent || "";
+}
+
 function highlightCodeBlocks(root: HTMLElement) {
-  root.querySelectorAll<HTMLElement>("pre.block-code code").forEach((code) => {
+  root.querySelectorAll<HTMLElement>("pre > code").forEach((code) => {
     if (code.dataset.highlighted === "true") return;
 
-    code.innerHTML = highlightCodeText(code.textContent || "");
+    const pre = code.closest("pre");
+    if (!pre) return;
+
+    pre.classList.remove("cm-content", "q9tKkq_readonly", "m-0");
+    pre.classList.add("custom-block", "block-code");
+    code.innerHTML = highlightCodeText(readableCodeText(code));
     code.dataset.highlighted = "true";
+  });
+}
+
+function resolveCitationSource(sourceId: string) {
+  const decodedSourceId = decodeURIComponent(sourceId);
+  const directSource = document.getElementById(decodedSourceId);
+
+  if (directSource) {
+    return { element: directSource, id: decodedSourceId };
+  }
+
+  const numericSource = decodedSourceId.replace(/^source-/, "");
+
+  if (!/^\d+$/.test(numericSource)) {
+    return null;
+  }
+
+  const sources = Array.from(document.querySelectorAll<HTMLElement>(".article-sources li[id]"));
+  const exactFallback = sources.find((source) => source.id === `source-${numericSource}`);
+
+  if (exactFallback) {
+    return { element: exactFallback, id: exactFallback.id };
+  }
+
+  const suffixFallback = sources.find((source) => source.id.endsWith(`-${numericSource}`));
+
+  if (suffixFallback) {
+    return { element: suffixFallback, id: suffixFallback.id };
+  }
+
+  const positionedFallback = sources[Number(numericSource) - 1];
+
+  if (positionedFallback) {
+    return { element: positionedFallback, id: positionedFallback.id || decodedSourceId };
+  }
+
+  return null;
+}
+
+function linkedLegacySourceHtml(sourceText: string, href: string) {
+  const cleanSourceText = String(sourceText || "").replace(/\s*\[link\]\s*$/i, "").trim();
+  const quotedTitle = cleanSourceText.match(/[“"]([^”"]{2,})[”"]/);
+  const title = quotedTitle?.[1] || "";
+  const titleStart = title ? cleanSourceText.indexOf(title, quotedTitle?.index || 0) : -1;
+  const linkStart = titleStart >= 0 ? titleStart : 0;
+  const linkEnd = titleStart >= 0 ? titleStart + title.length : cleanSourceText.length;
+
+  return `${escapeCodeText(cleanSourceText.slice(0, linkStart))}<a href="${escapeCodeText(href)}" target="_blank" rel="noopener noreferrer">${escapeCodeText(cleanSourceText.slice(linkStart, linkEnd))}</a>${escapeCodeText(cleanSourceText.slice(linkEnd))}`;
+}
+
+function normalizeLegacySourceLinks(root: HTMLElement) {
+  root.querySelectorAll<HTMLAnchorElement>(".article-sources a[href]").forEach((anchor) => {
+    if (anchor.textContent?.trim().toLowerCase() !== "[link]") return;
+
+    const parent = anchor.closest("p");
+    const href = anchor.getAttribute("href");
+    if (!parent || !href) return;
+
+    parent.innerHTML = linkedLegacySourceHtml(parent.textContent || "", href);
   });
 }
 
@@ -572,6 +649,7 @@ export default function ArticleContent({ html }: ArticleContentProps) {
     if (!root) return;
 
     highlightCodeBlocks(root);
+    normalizeLegacySourceLinks(root);
 
     root.querySelectorAll<HTMLElement>(".custom-html-block[data-html-block]").forEach(mountHtmlBlock);
 
@@ -616,12 +694,12 @@ export default function ArticleContent({ html }: ArticleContentProps) {
       const sourceId = link.getAttribute("href")?.slice(1);
       if (!sourceId) return;
 
-      const source = document.getElementById(decodeURIComponent(sourceId));
+      const source = resolveCitationSource(sourceId);
       if (!source) return;
 
       event.preventDefault();
-      source.scrollIntoView({ behavior: "smooth", block: "start" });
-      window.history.pushState(null, "", `#${sourceId}`);
+      source.element.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.pushState(null, "", `#${source.id}`);
     };
 
     window.addEventListener("message", handleHtmlBlockMessage);

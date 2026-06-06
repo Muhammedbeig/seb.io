@@ -967,6 +967,21 @@ body {
   white-space: pre;
 }
 
+.prose-custom pre.block-code {
+  margin: 1.5rem 0 1.75rem !important;
+  max-width: 100%;
+}
+
+.prose-custom .cm-editor:has(pre.block-code),
+.prose-custom .cm-scroller:has(> pre.block-code) {
+  width: 100%;
+  max-width: 100%;
+}
+
+.prose-custom .cm-scroller:has(> pre.block-code) {
+  overflow: visible;
+}
+
 .block-code::before {
   background: linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(10, 15, 28, 0.96));
   border-bottom: 1px solid rgba(122, 167, 255, 0.18);
@@ -998,11 +1013,13 @@ body {
 
 .block-code code {
   background: #0D1117;
+  box-sizing: border-box;
   counter-reset: code-line;
   display: block;
-  min-width: max-content;
+  min-width: 100%;
   padding: 1.1rem 1.35rem 1.25rem;
   white-space: pre;
+  width: max-content;
 }
 
 .block-code .code-line {
@@ -1051,6 +1068,21 @@ body {
 
 .block-code .code-punctuation {
   color: #D4D4D4 !important;
+}
+
+.prose-custom :not(pre) > code {
+  border: 1px solid rgba(122, 167, 255, 0.24);
+  border-radius: 6px;
+  background: rgba(13, 17, 23, 0.82);
+  color: #9CDCFE;
+  font-family: var(--font-dm-mono);
+  font-size: 0.88em;
+  padding: 0.08rem 0.32rem;
+  white-space: break-spaces;
+}
+
+.prose-custom a code {
+  color: inherit;
 }
 
 /* ─── Responsive ─── */

@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
   }
 
   revalidateTag("cms");
+  revalidateTag("home-main-guide");
   revalidatePath("/", "layout");
 
   const paths = normalizePaths(body.paths);

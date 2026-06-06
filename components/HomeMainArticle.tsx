@@ -1,11 +1,8 @@
 import ArticleToc from "@/components/ArticleToc";
-import { getHomeMainArticleSettings } from "@/lib/cms";
-import { renderHomeMarkdown } from "@/lib/homeMarkdown";
+import { getRenderedHomeGuide } from "@/lib/homeGuide";
 
 export default async function HomeMainArticle() {
-  const settings = await getHomeMainArticleSettings();
-  const guide = renderHomeMarkdown(settings.home_main_article_markdown);
-  const toc = guide.sections.map((section) => ({ id: section.id, text: section.title, level: 2 }));
+  const { guide, toc } = await getRenderedHomeGuide();
   const visibleSections = guide.sections.slice(0, 2);
   const collapsedSections = guide.sections.slice(2);
 
