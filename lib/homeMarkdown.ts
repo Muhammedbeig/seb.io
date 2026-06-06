@@ -10,6 +10,17 @@ export type HomeMarkdownSection = {
   html: string;
 };
 
+function normalizeMarkdownInput(markdown: string) {
+  return markdown
+    .replace(/\uFEFF/g, "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/â€œ|â€/g, '"')
+    .replace(/â€˜|â€™/g, "'")
+    .replace(/â€“|â€”/g, "-")
+    .replace(/â€¦/g, "...")
+    .replace(/â†’/g, "->");
+}
+
 function escapeHtml(input: string) {
   return input
     .replace(/&/g, "&amp;")
@@ -22,6 +33,7 @@ function inlineMarkdown(input: string) {
   let html = escapeHtml(input);
 
   html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/(^|[\s(])\*(?!\s)(.+?)(?<!\s)\*/g, "$1<em>$2</em>");
 
@@ -112,6 +124,16 @@ function renderLines(lines: string[]) {
     if (/^-{3,}$/.test(trimmed)) {
       html.push("<hr />");
       index += 1;
+      continue;
+    }
+
+    if (/^>\s?/.test(trimmed)) {
+      const quoteLines: string[] = [];
+      while (index < lines.length && /^>\s?/.test(lines[index].trim())) {
+        quoteLines.push(lines[index].trim().replace(/^>\s?/, ""));
+        index += 1;
+      }
+      html.push(`<blockquote>${renderLines(quoteLines)}</blockquote>`);
       continue;
     }
 
@@ -210,6 +232,29 @@ function splitMarkdownIntoSections(lines: string[]) {
   return { preamble, headingSections, sectionLevel };
 }
 
+function stripPublishingMetadata(lines: string[]) {
+  const metadataIndex = lines.findIndex((line) => /^#{2,}\s+Publishing metadata\b/i.test(line.trim()));
+  return metadataIndex >= 0 ? lines.slice(0, metadataIndex) : lines;
+}
+
+function stripLeadingTitle(lines: string[]) {
+  const firstContentIndex = lines.findIndex((line) => line.trim().length > 0);
+  if (firstContentIndex < 0) return lines;
+
+  if (/^#\s+/.test(lines[firstContentIndex].trim())) {
+    const nextLines = [...lines];
+    nextLines.splice(firstContentIndex, 1);
+
+    if (!nextLines[firstContentIndex]?.trim() && firstContentIndex < nextLines.length) {
+      nextLines.splice(firstContentIndex, 1);
+    }
+
+    return nextLines;
+  }
+
+  return lines;
+}
+
 function renderGuideSections(headingSections: string[][], sectionLevel: number | null): HomeMarkdownSection[] {
   const usedIds = new Set<string>();
 
@@ -240,7 +285,7 @@ export function renderHomeMarkdown(markdown?: string | null): RenderedMarkdown {
     return { introHtml: "", sections: [], fallbackHtml: "" };
   }
 
-  const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
+  const lines = stripLeadingTitle(stripPublishingMetadata(normalizeMarkdownInput(markdown).split("\n")));
   const { preamble, headingSections, sectionLevel } = splitMarkdownIntoSections(lines);
   const initialSections = [...preamble, ...headingSections.slice(0, 2)];
   const guideSections = renderGuideSections(headingSections, sectionLevel);

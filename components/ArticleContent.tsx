@@ -25,6 +25,15 @@ function runWhenIdle(callback: () => void) {
   window.setTimeout(callback, 1);
 }
 
+function normalizeDisplayText(value: string) {
+  return String(value || "")
+    .replace(/â€œ|â€/g, '"')
+    .replace(/â€˜|â€™/g, "'")
+    .replace(/â€“|â€”/g, "-")
+    .replace(/â€¦/g, "...")
+    .replace(/(\d)\?(\d)/g, "$1-$2");
+}
+
 function skeletonMarkup() {
   return `
     <div class="html-block-skeleton" aria-hidden="true">
@@ -80,7 +89,7 @@ function highlightCodeText(value: string) {
     .replace(/\r\n?/g, "\n")
     .split("\n")
     .map((line) => `<span class="code-line">${highlightCodeLine(line || " ")}</span>`)
-    .join("\n");
+    .join("");
 }
 
 function readableCodeText(code: HTMLElement) {
@@ -107,6 +116,31 @@ function highlightCodeBlocks(root: HTMLElement) {
     pre.classList.add("custom-block", "block-code");
     code.innerHTML = highlightCodeText(readableCodeText(code));
     code.dataset.highlighted = "true";
+  });
+}
+
+function unwrapImportedCodeBlocks(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>("pre.block-code").forEach((pre) => {
+    if (pre.dataset.importedCodeUnwrapped === "true") return;
+
+    const scroller = pre.parentElement;
+    const importedWrapper = pre.closest<HTMLElement>("div.relative.w-full.mt-4.mb-1");
+
+    if (!scroller?.classList.contains("cm-scroller") || !importedWrapper) return;
+
+    const trailingNodes: ChildNode[] = [];
+    let sibling = pre.nextSibling;
+
+    while (sibling) {
+      const nextSibling = sibling.nextSibling;
+      if (!(sibling.nodeType === Node.TEXT_NODE && !sibling.textContent?.trim())) {
+        trailingNodes.push(sibling);
+      }
+      sibling = nextSibling;
+    }
+
+    pre.dataset.importedCodeUnwrapped = "true";
+    importedWrapper.replaceWith(pre, ...trailingNodes);
   });
 }
 
@@ -166,6 +200,54 @@ function normalizeLegacySourceLinks(root: HTMLElement) {
     if (!parent || !href) return;
 
     parent.innerHTML = linkedLegacySourceHtml(parent.textContent || "", href);
+  });
+}
+
+function normalizeSourceText(root: HTMLElement) {
+  root.querySelectorAll<HTMLElement>(".article-sources p").forEach((paragraph) => {
+    const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+
+    while (walker.nextNode()) {
+      textNodes.push(walker.currentNode as Text);
+    }
+
+    textNodes.forEach((textNode) => {
+      const nextValue = normalizeDisplayText(textNode.nodeValue || "");
+      if (nextValue !== textNode.nodeValue) {
+        textNode.nodeValue = nextValue;
+      }
+    });
+  });
+}
+
+function synchronizeCitationPopovers(root: HTMLElement) {
+  root.querySelectorAll<HTMLAnchorElement>('a.citation-ref[href^="#"]').forEach((link) => {
+    const sourceId = link.getAttribute("href")?.slice(1);
+    if (!sourceId) return;
+
+    const source = resolveCitationSource(sourceId);
+    const popover = link.querySelector<HTMLElement>(".citation-popover");
+    if (!source || !popover) return;
+
+    const popoverTitle = popover.querySelector<HTMLElement>(".citation-popover-title");
+    const existingPopoverLink = popover.querySelector<HTMLElement>(".citation-popover-link");
+    const sourceParagraph = source.element.querySelector<HTMLElement>("p") || source.element;
+    const sourceAnchor = sourceParagraph.querySelector<HTMLAnchorElement>("a[href]");
+    const popoverLink = existingPopoverLink || document.createElement("span");
+
+    popoverLink.className = "citation-popover-link";
+    popoverLink.textContent = "View source";
+    if (sourceAnchor?.href) {
+      popoverLink.dataset.href = sourceAnchor.href;
+    }
+
+    popover.replaceChildren();
+    if (popoverTitle) {
+      popover.append(popoverTitle);
+    }
+    popover.append(document.createTextNode(normalizeDisplayText(sourceParagraph.textContent || "")));
+    popover.append(popoverLink);
   });
 }
 
@@ -648,8 +730,11 @@ export default function ArticleContent({ html }: ArticleContentProps) {
     const root = rootRef.current;
     if (!root) return;
 
+    unwrapImportedCodeBlocks(root);
     highlightCodeBlocks(root);
     normalizeLegacySourceLinks(root);
+    normalizeSourceText(root);
+    synchronizeCitationPopovers(root);
 
     root.querySelectorAll<HTMLElement>(".custom-html-block[data-html-block]").forEach(mountHtmlBlock);
 
