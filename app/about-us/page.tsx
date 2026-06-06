@@ -1,6 +1,22 @@
+import type { Metadata } from "next";
 import PageShell from "@/components/PageShell";
 import Link from "next/link";
 import { getAuthors, getBlogSummaries, getCompanyPage, getSeries } from "@/lib/cms";
+
+export const metadata: Metadata = {
+  title: "About Search Engine Basics",
+  description:
+    "Learn about Search Engine Basics, the free educational library that explains crawling, indexing, ranking, and SEO from first principles.",
+  alternates: {
+    canonical: "/about-us",
+  },
+  openGraph: {
+    title: "About Search Engine Basics",
+    description:
+      "Meet the educational project behind Search Engine Basics and learn how we teach search engines from first principles.",
+    url: "/about-us",
+  },
+};
 
 export default async function AboutPage() {
   const [page, articles, series, authors] = await Promise.all([

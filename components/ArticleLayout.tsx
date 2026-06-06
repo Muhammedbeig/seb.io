@@ -2,9 +2,11 @@ import Link from "next/link";
 import ArticleAttributeChips from "@/components/ArticleAttributeChips";
 import ContentImage from "@/components/ContentImage";
 import ArticleToc from "@/components/ArticleToc";
+import JsonLd from "@/components/JsonLd";
 import MathJaxLoader from "@/components/MathJaxLoader";
 import PageShell from "@/components/PageShell";
 import ShareButtons from "@/components/ShareButtons";
+import { absoluteSiteUrl } from "@/lib/site";
 import type { ArticleAttribute, ArticleFaq, ArticleSummary, Author, ShareLinks } from "@/lib/cms";
 
 interface TocItem {
@@ -52,6 +54,7 @@ interface ArticleLayoutProps {
   seriesTitle?: string;
   faqs?: ArticleFaq[];
   currentSlug?: string;
+  canonicalPath?: string;
   shareLinks?: ShareLinks;
 }
 
@@ -222,6 +225,40 @@ function stripHtml(input: string) {
   return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function isoDate(value?: string | null) {
+  if (!value) return undefined;
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? undefined : new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function articleAuthorSchema(author?: Author) {
+  if (!author) {
+    return {
+      "@type": "Organization",
+      name: "Search Engine Basics",
+      url: absoluteSiteUrl("/"),
+    };
+  }
+
+  return {
+    "@type": "Person",
+    name: author.name,
+    url: absoluteSiteUrl(`/authors/${author.slug}`),
+  };
+}
+
+function organizationSchema() {
+  return {
+    "@type": "Organization",
+    name: "Search Engine Basics",
+    url: absoluteSiteUrl("/"),
+    logo: {
+      "@type": "ImageObject",
+      url: absoluteSiteUrl("/icon-512.png"),
+    },
+  };
+}
+
 function ArticleFaqSection({ faqs }: { faqs: ArticleFaq[] }) {
   if (faqs.length === 0) return null;
 
@@ -272,6 +309,103 @@ function FaqSchema({ faqs }: { faqs: ArticleFaq[] }) {
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
     />
+  );
+}
+
+function ArticleStructuredData({
+  title,
+  excerpt,
+  image,
+  date,
+  updatedOn,
+  author,
+  canonicalPath,
+  seriesTitle,
+  tag,
+}: {
+  title: string;
+  excerpt: string;
+  image?: string | null;
+  date: string;
+  updatedOn?: string | null;
+  author?: Author;
+  canonicalPath: string;
+  seriesTitle?: string;
+  tag: string;
+}) {
+  const canonicalUrl = absoluteSiteUrl(canonicalPath);
+  const publishedDate = isoDate(date);
+  const modifiedDate = isoDate(updatedOn) || publishedDate;
+  const imageUrl = image ? absoluteSiteUrl(image) : absoluteSiteUrl("/Thumbnail.png");
+  const firstPathSegment = canonicalPath.split("/").filter(Boolean)[0];
+  const seriesPath = firstPathSegment ? `/${firstPathSegment}` : "/blog";
+  const seriesName = seriesTitle || tag || "Articles";
+
+  const webPage = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": canonicalUrl,
+    url: canonicalUrl,
+    name: title,
+    description: excerpt,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Search Engine Basics",
+      url: absoluteSiteUrl("/"),
+    },
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: imageUrl,
+    },
+  };
+
+  const article = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: title,
+    description: excerpt,
+    image: [imageUrl],
+    datePublished: publishedDate,
+    dateModified: modifiedDate,
+    author: articleAuthorSchema(author),
+    publisher: organizationSchema(),
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": canonicalUrl,
+    },
+  };
+
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: absoluteSiteUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: seriesName,
+        item: absoluteSiteUrl(seriesPath),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: title,
+        item: canonicalUrl,
+      },
+    ],
+  };
+
+  return (
+    <>
+      <JsonLd id="article-webpage-schema" data={webPage} />
+      <JsonLd id="article-schema" data={article} />
+      <JsonLd id="article-breadcrumb-schema" data={breadcrumb} />
+    </>
   );
 }
 
@@ -343,6 +477,7 @@ export default function ArticleLayout({
   seriesTitle,
   faqs = [],
   currentSlug,
+  canonicalPath,
   shareLinks,
 }: ArticleLayoutProps) {
   const hasContributors =
@@ -371,9 +506,21 @@ export default function ArticleLayout({
   const relatedSeriesTitle = seriesArticles.length > 0
     ? seriesHeading(seriesTitle || tag)
     : "Related Articles";
+  const schemaCanonicalPath = canonicalPath || (currentSlug ? `/${currentSlug}` : "/blog");
 
   return (
     <main>
+      <ArticleStructuredData
+        title={title}
+        excerpt={excerpt}
+        image={image}
+        date={date}
+        updatedOn={updatedOn}
+        author={author}
+        canonicalPath={schemaCanonicalPath}
+        seriesTitle={seriesTitle}
+        tag={tag}
+      />
       <FaqSchema faqs={faqs} />
       <MathJaxLoader />
       <PageShell>

@@ -60,6 +60,7 @@ export default async function NestedArticlePage({ params }: PageProps) {
       seriesArticles={article.seriesArticles}
       seriesTitle={series.title}
       currentSlug={article.slug}
+      canonicalPath={`/${params.slug}/${article.slug}`}
       toc={article.toc}
       attributes={article.attributes}
       author={article.author}

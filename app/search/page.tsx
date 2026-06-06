@@ -5,8 +5,16 @@ import ArticlePeekCard from "@/components/ArticlePeekCard";
 import { getSearchResults, recordSearchQuery } from "@/lib/cms";
 
 export const metadata: Metadata = {
-  title: "Search Results - SEB.io",
+  title: "Search Results | Search Engine Basics",
   description: "Search results for Search Engine Basics.",
+  robots: {
+    index: false,
+    follow: true,
+    googleBot: {
+      index: false,
+      follow: true,
+    },
+  },
 };
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {

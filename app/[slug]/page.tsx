@@ -5,12 +5,75 @@ import ArticleContent from "@/components/ArticleContent";
 import ArticleLayout from "@/components/ArticleLayout";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
 import ContentImage from "@/components/ContentImage";
+import JsonLd from "@/components/JsonLd";
 import PageShell from "@/components/PageShell";
 import { getBlogArticle, getSeriesBySlug } from "@/lib/cms";
+import { absoluteSiteUrl } from "@/lib/site";
 
 type PageProps = {
   params: { slug: string };
 };
+
+function SeriesStructuredData({
+  title,
+  description,
+  slug,
+  image,
+}: {
+  title: string;
+  description?: string;
+  slug: string;
+  image?: string;
+}) {
+  const url = absoluteSiteUrl(`/${slug}`);
+  const imageUrl = image ? absoluteSiteUrl(image) : absoluteSiteUrl("/Thumbnail.png");
+
+  return (
+    <>
+      <JsonLd
+        id="series-webpage-schema"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "@id": url,
+          url,
+          name: title,
+          description,
+          isPartOf: {
+            "@type": "WebSite",
+            name: "Search Engine Basics",
+            url: absoluteSiteUrl("/"),
+          },
+          primaryImageOfPage: {
+            "@type": "ImageObject",
+            url: imageUrl,
+          },
+        }}
+      />
+      <JsonLd
+        id="series-breadcrumb-schema"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: absoluteSiteUrl("/"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: title,
+              item: url,
+            },
+          ],
+        }}
+      />
+    </>
+  );
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const [series, article] = await Promise.all([
@@ -78,6 +141,12 @@ export default async function DynamicSlugPage({ params }: PageProps) {
 
     return (
       <main>
+        <SeriesStructuredData
+          title={series.title}
+          description={series.meta_description || series.description}
+          slug={series.slug}
+          image={series.image}
+        />
         <PageShell>
           <section className="pt-32 pb-14 relative overflow-hidden">
             <div className="absolute inset-0 grid-bg opacity-100 pointer-events-none" />
@@ -233,6 +302,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
       relatedPosts={article.relatedPosts}
       seriesArticles={article.seriesArticles}
       currentSlug={article.slug}
+      canonicalPath={article.categorySlug ? `/${article.categorySlug}/${article.slug}` : `/${article.slug}`}
       toc={article.toc}
       attributes={article.attributes}
       author={article.author}
