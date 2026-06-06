@@ -1,0 +1,83 @@
+name: Deploy Frontend To Hostinger
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: hostinger-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy over SSH
+        env:
+          SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
+          SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+          SSH_PASSWORD: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+          FRONTEND_APP_DIR: ${{ secrets.FRONTEND_APP_DIR }}
+          FRONTEND_PM2_APP_NAME: ${{ secrets.FRONTEND_PM2_APP_NAME }}
+          FRONTEND_NODE_BIN: ${{ secrets.FRONTEND_NODE_BIN }}
+          FRONTEND_NPM_BIN: ${{ secrets.FRONTEND_NPM_BIN }}
+          FRONTEND_RESTART_MODE: ${{ secrets.FRONTEND_RESTART_MODE }}
+          FRONTEND_PASSENGER_RESTART_FILE: ${{ secrets.FRONTEND_PASSENGER_RESTART_FILE }}
+          FRONTEND_HEALTH_URL: ${{ secrets.FRONTEND_HEALTH_URL }}
+          FRONTEND_RESTART_COMMAND: ${{ secrets.FRONTEND_RESTART_COMMAND }}
+        run: |
+          set -euo pipefail
+
+          SSH_PORT="${SSH_PORT:-65002}"
+
+          if [ -z "${SSH_HOST}" ] || [ -z "${SSH_USER}" ] || { [ -z "${SSH_PRIVATE_KEY}" ] && [ -z "${SSH_PASSWORD}" ]; }; then
+            echo "::notice::Hostinger SSH secrets are not configured; skipping deployment."
+            exit 0
+          fi
+
+          mkdir -p "$HOME/.ssh"
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> "$HOME/.ssh/known_hosts"
+
+          if [ -n "${SSH_PRIVATE_KEY}" ]; then
+            printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/hostinger_key"
+            chmod 600 "$HOME/.ssh/hostinger_key"
+            SSH=(ssh -i "$HOME/.ssh/hostinger_key" -p "$SSH_PORT")
+            SCP=(scp -i "$HOME/.ssh/hostinger_key" -P "$SSH_PORT")
+          else
+            sudo apt-get update
+            sudo apt-get install -y sshpass
+            SSH=(sshpass -e ssh -p "$SSH_PORT")
+            SCP=(sshpass -e scp -P "$SSH_PORT")
+            export SSHPASS="$SSH_PASSWORD"
+          fi
+
+          remote_script="/tmp/seb-frontend-deploy-${GITHUB_RUN_ID}.sh"
+          "${SCP[@]}" deploy/hostinger-frontend.sh "$SSH_USER@$SSH_HOST:$remote_script"
+
+          remote_env=(
+            "APP_NAME=seb.io"
+            "REPO_URL=https://github.com/Muhammedbeig/seb.io.git"
+            "BRANCH=main"
+            "GITHUB_SHA=$GITHUB_SHA"
+          )
+
+          [ -n "${FRONTEND_APP_DIR}" ] && remote_env+=("APP_DIR=$FRONTEND_APP_DIR")
+          [ -n "${FRONTEND_PM2_APP_NAME}" ] && remote_env+=("PM2_APP_NAME=$FRONTEND_PM2_APP_NAME")
+          [ -n "${FRONTEND_NODE_BIN}" ] && remote_env+=("NODE_BIN=$FRONTEND_NODE_BIN")
+          [ -n "${FRONTEND_NPM_BIN}" ] && remote_env+=("NPM_BIN=$FRONTEND_NPM_BIN")
+          [ -n "${FRONTEND_RESTART_MODE}" ] && remote_env+=("RESTART_MODE=$FRONTEND_RESTART_MODE")
+          [ -n "${FRONTEND_PASSENGER_RESTART_FILE}" ] && remote_env+=("PASSENGER_RESTART_FILE=$FRONTEND_PASSENGER_RESTART_FILE")
+          [ -n "${FRONTEND_HEALTH_URL}" ] && remote_env+=("HEALTH_URL=$FRONTEND_HEALTH_URL")
+          [ -n "${FRONTEND_RESTART_COMMAND}" ] && remote_env+=("RESTART_COMMAND=$FRONTEND_RESTART_COMMAND")
+
+          printf -v remote_prefix '%q ' "${remote_env[@]}"
+
+          "${SSH[@]}" "$SSH_USER@$SSH_HOST" \
+            "chmod +x '$remote_script' && ${remote_prefix}bash '$remote_script'; status=\$?; rm -f '$remote_script'; exit \$status"
