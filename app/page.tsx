@@ -90,11 +90,11 @@ export default async function Home() {
       <HomeStructuredData />
       <PageShell>
         <Hero />
+        <HomeMainArticle />
         <Ticker />
         <CoreSeries />
         <Stats />
         <FeaturedArticles />
-        <HomeMainArticle />
         <WhyReadHere />
         <Newsletter />
       </PageShell>

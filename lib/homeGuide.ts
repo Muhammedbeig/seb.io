@@ -18,7 +18,7 @@ export const getRenderedHomeGuide = unstable_cache(
       toc: guide.sections.map((section) => ({ id: section.id, text: section.title, level: 2 })),
     };
   },
-  ["home-main-guide:v1"],
+  ["home-main-guide:v2"],
   {
     revalidate: homeGuideRevalidateSeconds(),
     tags: ["cms", "home-main-guide"],

@@ -1,7 +1,13 @@
+export type HomeFaqItem = {
+  question: string;
+  answer: string;
+};
+
 type RenderedMarkdown = {
   introHtml: string;
   sections: HomeMarkdownSection[];
   fallbackHtml: string;
+  faqs: HomeFaqItem[];
 };
 
 export type HomeMarkdownSection = {
@@ -255,6 +261,33 @@ function stripLeadingTitle(lines: string[]) {
   return lines;
 }
 
+function parseFaqSection(contentLines: string[]): HomeFaqItem[] {
+  const items: HomeFaqItem[] = [];
+  let currentQuestion: string | null = null;
+  let currentAnswerLines: string[] = [];
+
+  for (const line of contentLines) {
+    const match = /^#{1,6}\s+(.+)$/.exec(line.trim());
+    if (match) {
+      if (currentQuestion !== null) {
+        const answerHtml = renderLines(currentAnswerLines);
+        if (answerHtml) items.push({ question: currentQuestion, answer: answerHtml });
+      }
+      currentQuestion = plainMarkdownText(match[1].trim());
+      currentAnswerLines = [];
+    } else if (currentQuestion !== null) {
+      currentAnswerLines.push(line);
+    }
+  }
+
+  if (currentQuestion !== null) {
+    const answerHtml = renderLines(currentAnswerLines);
+    if (answerHtml) items.push({ question: currentQuestion, answer: answerHtml });
+  }
+
+  return items;
+}
+
 function renderGuideSections(headingSections: string[][], sectionLevel: number | null): HomeMarkdownSection[] {
   const usedIds = new Set<string>();
 
@@ -282,17 +315,35 @@ function renderGuideSections(headingSections: string[][], sectionLevel: number |
 
 export function renderHomeMarkdown(markdown?: string | null): RenderedMarkdown {
   if (!markdown?.trim()) {
-    return { introHtml: "", sections: [], fallbackHtml: "" };
+    return { introHtml: "", sections: [], fallbackHtml: "", faqs: [] };
   }
 
   const lines = stripLeadingTitle(stripPublishingMetadata(normalizeMarkdownInput(markdown).split("\n")));
   const { preamble, headingSections, sectionLevel } = splitMarkdownIntoSections(lines);
-  const initialSections = [...preamble, ...headingSections.slice(0, 2)];
-  const guideSections = renderGuideSections(headingSections, sectionLevel);
+
+  const faqContentLines: string[][] = [];
+  const contentSections: string[][] = [];
+
+  for (const section of headingSections) {
+    const headingIndex = section.findIndex((line) => headingLevel(line) === sectionLevel);
+    if (headingIndex >= 0) {
+      const match = /^#{1,6}\s+(.+)$/.exec(section[headingIndex].trim());
+      if (match && /faq|frequently asked/i.test(plainMarkdownText(match[1]))) {
+        faqContentLines.push(section.slice(headingIndex + 1));
+        continue;
+      }
+    }
+    contentSections.push(section);
+  }
+
+  const guideSections = renderGuideSections(contentSections, sectionLevel);
+  const faqs = faqContentLines.flatMap(parseFaqSection);
+  const initialSections = [...preamble, ...contentSections.slice(0, 2)];
 
   return {
     introHtml: renderLines(preamble.flat()),
     sections: guideSections,
     fallbackHtml: renderLines(initialSections.flat()),
+    faqs,
   };
 }

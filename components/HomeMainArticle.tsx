@@ -1,17 +1,72 @@
 import ArticleToc from "@/components/ArticleToc";
 import { getRenderedHomeGuide } from "@/lib/homeGuide";
+import type { HomeFaqItem } from "@/lib/homeMarkdown";
+
+function stripHtml(input: string) {
+  return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function HomeFaqSchema({ faqs }: { faqs: HomeFaqItem[] }) {
+  if (faqs.length === 0) return null;
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: stripHtml(faq.answer),
+      },
+    })),
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+function HomeFaqSection({ faqs }: { faqs: HomeFaqItem[] }) {
+  if (faqs.length === 0) return null;
+  return (
+    <section className="mt-14 rounded-lg border border-[#1E1E30] p-6" style={{ background: "var(--card)" }}>
+      <h2 className="text-xl font-bold text-[#E8E8F0]" style={{ fontFamily: "var(--font-syne)" }}>
+        Frequently Asked Questions (FAQs)
+      </h2>
+      <div className="mt-5 divide-y divide-[#1E1E30]">
+        {faqs.map((faq, index) => (
+          <details key={`${faq.question}-${index}`} className="group py-4 first:pt-0 last:pb-0">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-[#E8E8F0] transition-colors group-open:text-[#B8FF35] hover:text-[#B8FF35]">
+              <span className="inline-flex w-full items-start justify-between gap-4">
+                {faq.question}
+                <span className="mt-0.5 text-[#B8FF35] transition-transform group-open:rotate-45">+</span>
+              </span>
+            </summary>
+            <div
+              className="prose-custom mt-3 text-sm"
+              dangerouslySetInnerHTML={{ __html: faq.answer }}
+            />
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default async function HomeMainArticle() {
   const { guide, toc } = await getRenderedHomeGuide();
   const visibleSections = guide.sections.slice(0, 2);
   const collapsedSections = guide.sections.slice(2);
 
-  if (!guide.fallbackHtml) {
+  if (!guide.fallbackHtml && guide.sections.length === 0 && guide.faqs.length === 0) {
     return null;
   }
 
   return (
     <section id="main-guide" className="py-24 border-y border-[#1E1E30]" style={{ background: "var(--surface)" }}>
+      <HomeFaqSchema faqs={guide.faqs} />
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <div className="max-w-3xl">
           <span className="tag">Main Guide</span>
@@ -86,6 +141,8 @@ export default async function HomeMainArticle() {
               ) : (
                 <div className="prose-custom" dangerouslySetInnerHTML={{ __html: guide.fallbackHtml }} />
               )}
+
+              <HomeFaqSection faqs={guide.faqs} />
             </div>
           </article>
         </div>
