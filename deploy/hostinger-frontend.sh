@@ -46,12 +46,10 @@ restart_app() {
 
   if [ "$RESTART_MODE" = "pm2" ] && [ -n "$PM2_APP_NAME" ] && command -v pm2 >/dev/null 2>&1; then
     cd "$CURRENT_LINK"
-    if pm2 describe "$PM2_APP_NAME" >/dev/null 2>&1; then
-      pm2 reload "$PM2_APP_NAME" --update-env
-    else
-      pm2 start "$NPM_BIN" --name "$PM2_APP_NAME" -- start
-    fi
-
+    # Delete and re-start so PM2 loads from the new release directory.
+    # pm2 reload keeps the old resolved path in memory; delete+start forces a clean launch.
+    pm2 delete "$PM2_APP_NAME" >/dev/null 2>&1 || true
+    pm2 start "$NPM_BIN" --name "$PM2_APP_NAME" -- start
     pm2 save >/dev/null 2>&1 || true
     return
   fi
