@@ -10,6 +10,7 @@ NPM_BIN="${NPM_BIN:-/opt/alt/alt-nodejs22/root/bin/npm}"
 RESTART_MODE="${RESTART_MODE:-passenger}"
 PM2_APP_NAME="${PM2_APP_NAME:-}"
 KEEP_RELEASES="${KEEP_RELEASES:-5}"
+NEXT_BUILD_CPUS="${NEXT_BUILD_CPUS:-1}"
 
 RELEASES_DIR="$APP_DIR/releases"
 SHARED_DIR="$APP_DIR/shared"
@@ -84,6 +85,7 @@ require_command "$NODE_BIN"
 require_command "$NPM_BIN"
 
 export PATH="$(dirname "$NODE_BIN"):$PATH"
+export NEXT_BUILD_CPUS
 
 mkdir -p "$RELEASES_DIR" "$SHARED_DIR"
 
