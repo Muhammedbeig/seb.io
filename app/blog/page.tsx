@@ -1,7 +1,7 @@
 import PageShell from "@/components/PageShell";
 import Link from "next/link";
-import Image from "next/image";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
+import ContentImage from "@/components/ContentImage";
 import { getBlogSummaries } from "@/lib/cms";
 
 export default async function BlogPage() {
@@ -79,12 +79,10 @@ export default async function BlogPage() {
               >
                 {post.image && (
                   <div className="relative aspect-[16/8] overflow-hidden border-b border-[#1E1E30] bg-[#0F0F1A]">
-                    <Image
+                    <ContentImage
                       src={post.image}
                       alt={post.title}
-                      fill
-                      sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                      imageClassName="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                     />
                   </div>
                 )}

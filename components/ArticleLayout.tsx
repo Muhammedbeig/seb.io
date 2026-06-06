@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import ArticleAttributeChips from "@/components/ArticleAttributeChips";
+import ContentImage from "@/components/ContentImage";
 import ArticleToc from "@/components/ArticleToc";
 import MathJaxLoader from "@/components/MathJaxLoader";
 import PageShell from "@/components/PageShell";
@@ -458,14 +458,14 @@ export default function ArticleLayout({
 
             {image && (
               <div className="mt-8 overflow-hidden rounded-lg border border-[#1E1E30] bg-[#0F0F1A]">
-                <Image
+                <ContentImage
                   src={image}
                   alt={title}
                   width={1254}
                   height={936}
                   priority
-                  sizes="(min-width: 768px) 768px, 100vw"
-                  className="h-full max-h-[460px] w-full object-cover"
+                  className="block h-full w-full"
+                  imageClassName="h-full max-h-[460px] w-full object-cover"
                 />
               </div>
             )}

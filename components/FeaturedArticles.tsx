@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
+import ContentImage from "@/components/ContentImage";
 import { getFeaturedArticles } from "@/lib/cms";
 
 function TagChip({ label, accent }: { label: string; accent: string }) {
@@ -65,12 +65,10 @@ export default async function FeaturedArticles() {
 
             {featured.image && (
               <div className="relative w-full aspect-[16/8] overflow-hidden border-b border-[#1E1E30] bg-[#0F0F1A]">
-                <Image
+                <ContentImage
                   src={featured.image}
                   alt={featured.title}
-                  fill
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  imageClassName="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                 />
               </div>
             )}
@@ -118,12 +116,10 @@ export default async function FeaturedArticles() {
             >
               {article.image && (
                 <div className="relative aspect-[16/9] overflow-hidden border-b border-[#1E1E30] bg-[#0F0F1A]">
-                  <Image
+                  <ContentImage
                     src={article.image}
                     alt={article.title}
-                    fill
-                    sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    imageClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 </div>
               )}

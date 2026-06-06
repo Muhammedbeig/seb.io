@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
+import ContentImage from "@/components/ContentImage";
 import PageShell from "@/components/PageShell";
 import { getAuthor } from "@/lib/cms";
 
@@ -105,13 +105,10 @@ export default async function AuthorPage({ params }: PageProps) {
                     >
                         {article.image && (
                           <div className="relative mb-4 aspect-[16/8] overflow-hidden rounded-md border border-[#1E1E30] bg-[#0F0F1A]">
-                          <Image
-                            src={article.image}
-                            alt={article.title}
-                            fill
-                            sizes="(min-width: 768px) 50vw, 100vw"
-                            className="h-full w-full object-cover"
-                          />
+                            <ContentImage
+                              src={article.image}
+                              alt={article.title}
+                            />
                           </div>
                         )}
                       <ArticlePeekCard
