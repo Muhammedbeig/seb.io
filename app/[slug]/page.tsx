@@ -206,17 +206,6 @@ export default async function DynamicSlugPage({ params }: PageProps) {
             </div>
           </section>
 
-          {series.content && (
-            <section className="border-y border-[#1E1E30] py-10" style={{ background: "var(--surface)" }}>
-              <div className="max-w-3xl mx-auto px-6 lg:px-8">
-                <div
-                  className="prose-custom"
-                  dangerouslySetInnerHTML={{ __html: series.content }}
-                />
-              </div>
-            </section>
-          )}
-
           <section className="pb-24 pt-10">
             <div className="max-w-6xl mx-auto px-6 lg:px-8">
               {series.isComingSoon && series.articles.length === 0 ? (
