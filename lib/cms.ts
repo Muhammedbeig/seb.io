@@ -584,6 +584,7 @@ export type ArticleSummary = {
 export type Series = {
   id: number;
   title: string;
+  name?: string;
   slug: string;
   description?: string;
   content?: string;
@@ -608,6 +609,9 @@ export async function getSeries(): Promise<Series[]> {
   if (response?.data && Array.isArray(response.data)) {
     return response.data.map((series) => ({
       ...series,
+      // The panel's "name" field is the editable display label; "title" is a
+      // separate legacy column. Prefer name so panel edits reflect on the site.
+      title: series.name?.trim() || series.title,
       accent: series.accent || "#B8FF35",
       isComingSoon: Boolean(series.isComingSoon ?? series.is_coming_soon),
       articles: Array.isArray(series.articles)
@@ -623,6 +627,8 @@ export async function getSeriesBySlug(slug: string): Promise<Series | null> {
   if (response?.data) {
     return {
       ...response.data,
+      // Prefer the editable "name" field over the legacy "title" column.
+      title: response.data.name?.trim() || response.data.title,
       accent: response.data.accent || "#B8FF35",
       isComingSoon: Boolean(response.data.isComingSoon ?? response.data.is_coming_soon),
       articles: Array.isArray(response.data.articles)
