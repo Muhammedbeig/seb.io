@@ -1,12 +1,32 @@
 import ArticleToc from "@/components/ArticleToc";
 import { getRenderedHomeGuide } from "@/lib/homeGuide";
-import type { HomeFaqItem } from "@/lib/homeMarkdown";
+import type { HomeMarkdownSection } from "@/lib/homeMarkdown";
+
+type FaqItem = { question: string; answer: string };
+
+function isFaqSection(section: HomeMarkdownSection) {
+  return /faq|frequently asked/i.test(section.title);
+}
+
+function parseFaqHtml(html: string): FaqItem[] {
+  const items: FaqItem[] = [];
+  // Split on any h2–h6 tag boundary
+  const parts = html.split(/(?=<h[2-6][\s>])/i);
+  for (const part of parts) {
+    const hMatch = /^<h[2-6][^>]*>([\s\S]*?)<\/h[2-6]>/i.exec(part);
+    if (!hMatch) continue;
+    const question = hMatch[1].replace(/<[^>]*>/g, "").trim();
+    const answer = part.slice(hMatch[0].length).trim();
+    if (question && answer) items.push({ question, answer });
+  }
+  return items;
+}
 
 function stripHtml(input: string) {
   return input.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function HomeFaqSchema({ faqs }: { faqs: HomeFaqItem[] }) {
+function HomeFaqSchema({ faqs }: { faqs: FaqItem[] }) {
   if (faqs.length === 0) return null;
   const schema = {
     "@context": "https://schema.org",
@@ -14,10 +34,7 @@ function HomeFaqSchema({ faqs }: { faqs: HomeFaqItem[] }) {
     mainEntity: faqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: stripHtml(faq.answer),
-      },
+      acceptedAnswer: { "@type": "Answer", text: stripHtml(faq.answer) },
     })),
   };
   return (
@@ -28,7 +45,7 @@ function HomeFaqSchema({ faqs }: { faqs: HomeFaqItem[] }) {
   );
 }
 
-function HomeFaqSection({ faqs }: { faqs: HomeFaqItem[] }) {
+function HomeFaqSection({ faqs }: { faqs: FaqItem[] }) {
   if (faqs.length === 0) return null;
   return (
     <section className="mt-14 rounded-lg border border-[#1E1E30] p-6" style={{ background: "var(--card)" }}>
@@ -37,7 +54,7 @@ function HomeFaqSection({ faqs }: { faqs: HomeFaqItem[] }) {
       </h2>
       <div className="mt-5 divide-y divide-[#1E1E30]">
         {faqs.map((faq, index) => (
-          <details key={`${faq.question}-${index}`} className="group py-4 first:pt-0 last:pb-0">
+          <details key={`faq-${index}`} className="group py-4 first:pt-0 last:pb-0">
             <summary className="cursor-pointer list-none text-sm font-semibold text-[#E8E8F0] transition-colors group-open:text-[#B8FF35] hover:text-[#B8FF35]">
               <span className="inline-flex w-full items-start justify-between gap-4">
                 {faq.question}
@@ -57,16 +74,22 @@ function HomeFaqSection({ faqs }: { faqs: HomeFaqItem[] }) {
 
 export default async function HomeMainArticle() {
   const { guide, toc } = await getRenderedHomeGuide();
-  const visibleSections = guide.sections.slice(0, 2);
-  const collapsedSections = guide.sections.slice(2);
 
-  if (!guide.fallbackHtml && guide.sections.length === 0 && guide.faqs.length === 0) {
+  if (!guide.fallbackHtml) {
     return null;
   }
 
+  const contentSections = guide.sections.filter((s) => !isFaqSection(s));
+  const faqSections = guide.sections.filter(isFaqSection);
+  const faqs = faqSections.flatMap((s) => parseFaqHtml(s.html));
+
+  const visibleSections = contentSections.slice(0, 2);
+  const collapsedSections = contentSections.slice(2);
+  const filteredToc = toc.filter((t) => contentSections.some((s) => s.id === t.id));
+
   return (
     <section id="main-guide" className="py-24 border-y border-[#1E1E30]" style={{ background: "var(--surface)" }}>
-      <HomeFaqSchema faqs={guide.faqs} />
+      <HomeFaqSchema faqs={faqs} />
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <div className="max-w-3xl">
           <span className="tag">Main Guide</span>
@@ -83,7 +106,7 @@ export default async function HomeMainArticle() {
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-3 lg:gap-12">
-          {guide.sections.length > 0 && (
+          {contentSections.length > 0 && (
             <aside className="lg:order-2 lg:col-span-1">
               <div className="home-guide-sidebar">
                 <nav aria-label="In this guide">
@@ -93,7 +116,7 @@ export default async function HomeMainArticle() {
                   >
                     In this guide
                   </p>
-                  <ArticleToc toc={toc} />
+                  <ArticleToc toc={filteredToc} />
                 </nav>
               </div>
             </aside>
@@ -105,7 +128,7 @@ export default async function HomeMainArticle() {
                 <div className="prose-custom home-guide-intro" dangerouslySetInnerHTML={{ __html: guide.introHtml }} />
               )}
 
-              {guide.sections.length > 0 ? (
+              {contentSections.length > 0 ? (
                 <>
                   <div className="space-y-10">
                     {visibleSections.map((section) => (
@@ -142,7 +165,7 @@ export default async function HomeMainArticle() {
                 <div className="prose-custom" dangerouslySetInnerHTML={{ __html: guide.fallbackHtml }} />
               )}
 
-              <HomeFaqSection faqs={guide.faqs} />
+              <HomeFaqSection faqs={faqs} />
             </div>
           </article>
         </div>
