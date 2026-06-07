@@ -4,6 +4,12 @@ import ArticlePeekCard from "@/components/ArticlePeekCard";
 import ContentImage from "@/components/ContentImage";
 import { getBlogSummaries } from "@/lib/cms";
 
+export const metadata = {
+  title: "SEO Articles: Crawling, Indexing & Ranking Deep Dives | SEB",
+  description:
+    "Browse every technical article on how search engines work — covering crawling, indexing, ranking algorithms, and query processing. Structured for methodical learning.",
+};
+
 export default async function BlogPage() {
   const allPosts = await getBlogSummaries();
   const categories = ["All", ...Array.from(new Set(allPosts.map((post) => post.tag))).filter(Boolean)];

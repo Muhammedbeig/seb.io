@@ -4,6 +4,12 @@ import ArticlePeekCard from "@/components/ArticlePeekCard";
 import ContentImage from "@/components/ContentImage";
 import { getSeries } from "@/lib/cms";
 
+export const metadata = {
+  title: "SEO Learning Series: Topic Paths on How Search Engines Work",
+  description:
+    "Explore structured article series on search engine technology. Each series follows a clear topic path — from crawling to ranking — with articles arranged for progressive understanding.",
+};
+
 export default async function SeriesPage() {
   const series = await getSeries();
   const totalArticles = series.reduce((acc, item) => acc + item.articles.length, 0);
@@ -23,8 +29,8 @@ export default async function SeriesPage() {
                 fontWeight: 800,
               }}
             >
-              Topic paths for<br />
-              <span className="text-stroke">search engine basics.</span>
+              Structured topic<br />
+              <span className="text-stroke">learning paths.</span>
             </h1>
             <p className="mt-5 max-w-xl text-sm leading-relaxed text-[#6B6B80]">
               Browse each category as a reading series, with articles arranged into a clean path from first idea to

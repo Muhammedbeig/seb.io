@@ -2,6 +2,7 @@ type RenderedMarkdown = {
   introHtml: string;
   sections: HomeMarkdownSection[];
   fallbackHtml: string;
+  title: string | null;
 };
 
 export type HomeMarkdownSection = {
@@ -237,6 +238,13 @@ function stripPublishingMetadata(lines: string[]) {
   return metadataIndex >= 0 ? lines.slice(0, metadataIndex) : lines;
 }
 
+function extractLeadingTitle(lines: string[]): string | null {
+  const firstContentIndex = lines.findIndex((line) => line.trim().length > 0);
+  if (firstContentIndex < 0) return null;
+  const match = /^#\s+(.+)$/.exec(lines[firstContentIndex].trim());
+  return match ? plainMarkdownText(match[1].trim()) : null;
+}
+
 function stripLeadingTitle(lines: string[]) {
   const firstContentIndex = lines.findIndex((line) => line.trim().length > 0);
   if (firstContentIndex < 0) return lines;
@@ -282,10 +290,12 @@ function renderGuideSections(headingSections: string[][], sectionLevel: number |
 
 export function renderHomeMarkdown(markdown?: string | null): RenderedMarkdown {
   if (!markdown?.trim()) {
-    return { introHtml: "", sections: [], fallbackHtml: "" };
+    return { introHtml: "", sections: [], fallbackHtml: "", title: null };
   }
 
-  const lines = stripLeadingTitle(stripPublishingMetadata(normalizeMarkdownInput(markdown).split("\n")));
+  const strippedMeta = stripPublishingMetadata(normalizeMarkdownInput(markdown).split("\n"));
+  const title = extractLeadingTitle(strippedMeta);
+  const lines = stripLeadingTitle(strippedMeta);
   const { preamble, headingSections, sectionLevel } = splitMarkdownIntoSections(lines);
   const initialSections = [...preamble, ...headingSections.slice(0, 2)];
   const guideSections = renderGuideSections(headingSections, sectionLevel);
@@ -294,5 +304,6 @@ export function renderHomeMarkdown(markdown?: string | null): RenderedMarkdown {
     introHtml: renderLines(preamble.flat()),
     sections: guideSections,
     fallbackHtml: renderLines(initialSections.flat()),
+    title,
   };
 }

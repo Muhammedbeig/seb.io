@@ -101,7 +101,7 @@ export default async function HomeMainArticle() {
               fontWeight: 800,
             }}
           >
-            Search Engine Basics
+            {guide.title ?? "Search Engine Basics"}
           </h1>
         </div>
 
