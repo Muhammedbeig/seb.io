@@ -783,8 +783,11 @@ export default function ArticleContent({ html }: ArticleContentProps) {
       if (!source) return;
 
       event.preventDefault();
-      source.element.scrollIntoView({ behavior: "smooth", block: "start" });
-      window.history.pushState(null, "", `#${source.id}`);
+      const hash = `#${source.id}`;
+      if (window.location.hash === hash) {
+        window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+      }
+      window.location.hash = source.id;
     };
 
     window.addEventListener("message", handleHtmlBlockMessage);
