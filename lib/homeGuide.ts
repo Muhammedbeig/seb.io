@@ -1,26 +1,25 @@
-import { unstable_cache } from "next/cache";
-
 import { getHomeMainArticleSettings } from "@/lib/cms";
 import { renderHomeMarkdown } from "@/lib/homeMarkdown";
 
-function homeGuideRevalidateSeconds() {
-  const revalidate = Number(process.env.CMS_REVALIDATE_SECONDS);
-  return Number.isFinite(revalidate) && revalidate > 0 ? revalidate : 60;
+let lastRenderedHomeGuide: Awaited<ReturnType<typeof renderHomeGuideFromCms>> | null = null;
+
+async function renderHomeGuideFromCms() {
+  const settings = await getHomeMainArticleSettings();
+  const guide = renderHomeMarkdown(settings.home_main_article_markdown);
+
+  return {
+    guide,
+    toc: guide.sections.map((section) => ({ id: section.id, text: section.title, level: 2 })),
+  };
 }
 
-export const getRenderedHomeGuide = unstable_cache(
-  async () => {
-    const settings = await getHomeMainArticleSettings();
-    const guide = renderHomeMarkdown(settings.home_main_article_markdown);
+export async function getRenderedHomeGuide() {
+  const rendered = await renderHomeGuideFromCms();
 
-    return {
-      guide,
-      toc: guide.sections.map((section) => ({ id: section.id, text: section.title, level: 2 })),
-    };
-  },
-  ["home-main-guide:v1"],
-  {
-    revalidate: homeGuideRevalidateSeconds(),
-    tags: ["cms", "home-main-guide"],
-  },
-);
+  if (rendered.guide.fallbackHtml) {
+    lastRenderedHomeGuide = rendered;
+    return rendered;
+  }
+
+  return lastRenderedHomeGuide ?? rendered;
+}
