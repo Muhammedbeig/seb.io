@@ -1,3 +1,6 @@
+const path = require("path");
+process.chdir(__dirname);
+
 const { createServer } = require("http");
 const next = require("next");
 
@@ -15,6 +18,7 @@ app.prepare().then(() => {
     console.log(`Ready on http://${hostname}:${port}`);
   });
 });
+
 
 
 
