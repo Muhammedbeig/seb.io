@@ -90,14 +90,7 @@ export default async function HomeMainArticle() {
       <HomeFaqSchema faqs={faqs} />
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <div className="max-w-3xl">
-          <div className="flex items-center gap-3">
-            <span className="tag">Pillar Guide</span>
-            {contentSections.length > 0 && (
-              <span className="text-xs font-medium text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
-                {contentSections.length} Workflow Modules
-              </span>
-            )}
-          </div>
+          <span className="tag">Main Guide</span>
           <h1
             className="mt-5 text-[#E8E8F0] leading-tight"
             style={{
@@ -116,11 +109,10 @@ export default async function HomeMainArticle() {
               <div className="home-guide-sidebar">
                 <nav aria-label="In this guide">
                   <p
-                    className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase mb-4 flex items-center justify-between"
+                    className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase mb-4"
                     style={{ fontFamily: "var(--font-dm-mono)" }}
                   >
-                    <span>In this guide</span>
-                    <span className="text-[#B8FF35]">{contentSections.length} Steps</span>
+                    In this guide
                   </p>
                   <ArticleToc toc={filteredToc} />
                 </nav>
@@ -131,44 +123,17 @@ export default async function HomeMainArticle() {
           <article className="home-guide min-w-0 lg:order-1 lg:col-span-2">
             <div>
               {guide.introHtml && (
-                <div className="prose-custom home-guide-intro mb-10">
+                <div className="prose-custom home-guide-intro">
                   <ArticleContent html={guide.introHtml} />
                 </div>
               )}
 
               {contentSections.length > 0 ? (
-                <div className="space-y-12">
-                  {contentSections.map((section, index) => (
-                    <section
-                      key={section.id}
-                      id={section.id}
-                      className="home-guide-section relative rounded-xl border border-[#1E1E30] bg-[#0A0A14]/60 p-6 md:p-8 transition-all hover:border-[#B8FF35]/30"
-                    >
-                      <div className="flex items-center gap-3 mb-4">
-                        <span
-                          className="flex h-7 w-7 items-center justify-center rounded-md bg-[#B8FF35]/10 text-xs font-bold text-[#B8FF35] border border-[#B8FF35]/20"
-                          style={{ fontFamily: "var(--font-dm-mono)" }}
-                        >
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                        <span
-                          className="text-xs font-semibold uppercase tracking-widest text-[#6B6B80]"
-                          style={{ fontFamily: "var(--font-dm-mono)" }}
-                        >
-                          Workflow Step {index + 1}
-                        </span>
-                      </div>
-                      <h2
-                        className="text-2xl md:text-3xl font-extrabold text-[#E8E8F0] mb-6 leading-snug"
-                        style={{ fontFamily: "var(--font-syne)" }}
-                      >
-                        {section.title}
-                      </h2>
-                      {section.html && (
-                        <div className="prose-custom">
-                          <ArticleContent html={section.html} />
-                        </div>
-                      )}
+                <div className="space-y-10">
+                  {contentSections.map((section) => (
+                    <section key={section.id} id={section.id} className="home-guide-section prose-custom">
+                      <h2>{section.title}</h2>
+                      {section.html && <ArticleContent html={section.html} />}
                     </section>
                   ))}
                 </div>
@@ -186,4 +151,5 @@ export default async function HomeMainArticle() {
     </section>
   );
 }
+
 
