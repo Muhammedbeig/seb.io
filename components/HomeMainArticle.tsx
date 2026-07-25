@@ -1,4 +1,5 @@
 import ArticleToc from "@/components/ArticleToc";
+import ArticleContent from "@/components/ArticleContent";
 import { getRenderedHomeGuide } from "@/lib/homeGuide";
 import type { HomeMarkdownSection } from "@/lib/homeMarkdown";
 
@@ -75,16 +76,13 @@ function HomeFaqSection({ faqs }: { faqs: FaqItem[] }) {
 export default async function HomeMainArticle() {
   const { guide, toc } = await getRenderedHomeGuide();
 
-  if (!guide.fallbackHtml) {
+  if (!guide.fallbackHtml && guide.sections.length === 0) {
     return null;
   }
 
   const contentSections = guide.sections.filter((s) => !isFaqSection(s));
   const faqSections = guide.sections.filter(isFaqSection);
   const faqs = faqSections.flatMap((s) => parseFaqHtml(s.html));
-
-  const visibleSections = contentSections.slice(0, 2);
-  const collapsedSections = contentSections.slice(2);
   const filteredToc = toc.filter((t) => contentSections.some((s) => s.id === t.id));
 
   return (
@@ -92,7 +90,14 @@ export default async function HomeMainArticle() {
       <HomeFaqSchema faqs={faqs} />
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
         <div className="max-w-3xl">
-          <span className="tag">Main Guide</span>
+          <div className="flex items-center gap-3">
+            <span className="tag">Pillar Guide</span>
+            {contentSections.length > 0 && (
+              <span className="text-xs font-medium text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
+                {contentSections.length} Workflow Modules
+              </span>
+            )}
+          </div>
           <h1
             className="mt-5 text-[#E8E8F0] leading-tight"
             style={{
@@ -111,10 +116,11 @@ export default async function HomeMainArticle() {
               <div className="home-guide-sidebar">
                 <nav aria-label="In this guide">
                   <p
-                    className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase mb-4"
+                    className="text-xs font-semibold text-[#6B6B80] tracking-widest uppercase mb-4 flex items-center justify-between"
                     style={{ fontFamily: "var(--font-dm-mono)" }}
                   >
-                    In this guide
+                    <span>In this guide</span>
+                    <span className="text-[#B8FF35]">{contentSections.length} Steps</span>
                   </p>
                   <ArticleToc toc={filteredToc} />
                 </nav>
@@ -125,44 +131,51 @@ export default async function HomeMainArticle() {
           <article className="home-guide min-w-0 lg:order-1 lg:col-span-2">
             <div>
               {guide.introHtml && (
-                <div className="prose-custom home-guide-intro" dangerouslySetInnerHTML={{ __html: guide.introHtml }} />
+                <div className="prose-custom home-guide-intro mb-10">
+                  <ArticleContent html={guide.introHtml} />
+                </div>
               )}
 
               {contentSections.length > 0 ? (
-                <>
-                  <div className="space-y-10">
-                    {visibleSections.map((section) => (
-                      <section key={section.id} id={section.id} className="home-guide-section prose-custom">
-                        <h2>{section.title}</h2>
-                        {section.html && <div dangerouslySetInnerHTML={{ __html: section.html }} />}
-                      </section>
-                    ))}
-                  </div>
-
-                  {collapsedSections.length > 0 && (
-                    <div className="home-guide-accordion">
-                      {collapsedSections.map((section, index) => (
-                        <details key={section.id} id={section.id} className="home-guide-details">
-                          <summary>
-                            <span className="home-guide-summary-index">
-                              {String(index + visibleSections.length + 1).padStart(2, "0")}
-                            </span>
-                            <h2 className="home-guide-summary-title">{section.title}</h2>
-                            <span className="home-guide-summary-icon" aria-hidden="true" />
-                          </summary>
-                          {section.html && (
-                            <div
-                              className="prose-custom home-guide-details-content"
-                              dangerouslySetInnerHTML={{ __html: section.html }}
-                            />
-                          )}
-                        </details>
-                      ))}
-                    </div>
-                  )}
-                </>
+                <div className="space-y-12">
+                  {contentSections.map((section, index) => (
+                    <section
+                      key={section.id}
+                      id={section.id}
+                      className="home-guide-section relative rounded-xl border border-[#1E1E30] bg-[#0A0A14]/60 p-6 md:p-8 transition-all hover:border-[#B8FF35]/30"
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <span
+                          className="flex h-7 w-7 items-center justify-center rounded-md bg-[#B8FF35]/10 text-xs font-bold text-[#B8FF35] border border-[#B8FF35]/20"
+                          style={{ fontFamily: "var(--font-dm-mono)" }}
+                        >
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span
+                          className="text-xs font-semibold uppercase tracking-widest text-[#6B6B80]"
+                          style={{ fontFamily: "var(--font-dm-mono)" }}
+                        >
+                          Workflow Step {index + 1}
+                        </span>
+                      </div>
+                      <h2
+                        className="text-2xl md:text-3xl font-extrabold text-[#E8E8F0] mb-6 leading-snug"
+                        style={{ fontFamily: "var(--font-syne)" }}
+                      >
+                        {section.title}
+                      </h2>
+                      {section.html && (
+                        <div className="prose-custom">
+                          <ArticleContent html={section.html} />
+                        </div>
+                      )}
+                    </section>
+                  ))}
+                </div>
               ) : (
-                <div className="prose-custom" dangerouslySetInnerHTML={{ __html: guide.fallbackHtml }} />
+                <div className="prose-custom">
+                  <ArticleContent html={guide.fallbackHtml} />
+                </div>
               )}
 
               <HomeFaqSection faqs={faqs} />
@@ -173,3 +186,4 @@ export default async function HomeMainArticle() {
     </section>
   );
 }
+

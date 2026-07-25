@@ -709,8 +709,6 @@ body {
 
 .home-guide-section {
   scroll-margin-top: 104px;
-  border-top: 1px solid var(--border);
-  padding-top: 1.6rem;
 }
 
 .home-guide-section h2 {
