@@ -24,7 +24,7 @@ Optional:
 - `FRONTEND_NODE_BIN`: defaults to `/opt/alt/alt-nodejs22/root/bin/node`
 - `FRONTEND_NPM_BIN`: defaults to `/opt/alt/alt-nodejs22/root/bin/npm`
 - `FRONTEND_RESTART_MODE`: defaults to `passenger`
-- `FRONTEND_PASSENGER_RESTART_FILE`: defaults to `$APP_DIR/current/tmp/restart.txt`
+- `FRONTEND_PASSENGER_RESTART_FILE`: defaults to `~/domains/searchenginebasics.io/public_html/tmp/restart.txt`
 - `FRONTEND_PM2_APP_NAME`: only needed if `FRONTEND_RESTART_MODE=pm2`
 - `FRONTEND_HEALTH_URL`: example `https://searchenginebasics.io`
 - `FRONTEND_RESTART_COMMAND`: fallback restart command if `pm2` is not available
@@ -51,7 +51,7 @@ PassengerAppType node
 PassengerNodejs /opt/alt/alt-nodejs22/root/bin/node
 PassengerStartupFile server.js
 PassengerBaseURI /
-PassengerRestartDir /home/u680035976/apps/seb.io/current/tmp
+PassengerRestartDir /home/u680035976/domains/searchenginebasics.io/public_html/tmp
 ```
 
 Keep the existing `SetEnv` and rewrite/security lines already present in `.htaccess`.

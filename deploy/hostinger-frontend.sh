@@ -16,7 +16,8 @@ ARTIFACT_PATH="${ARTIFACT_PATH:-}"
 RELEASES_DIR="$APP_DIR/releases"
 SHARED_DIR="$APP_DIR/shared"
 CURRENT_LINK="$APP_DIR/current"
-PASSENGER_RESTART_FILE="${PASSENGER_RESTART_FILE:-$CURRENT_LINK/tmp/restart.txt}"
+PUBLIC_HTML_DIR="${PUBLIC_HTML_DIR:-$HOME/domains/searchenginebasics.io/public_html}"
+PASSENGER_RESTART_FILE="${PASSENGER_RESTART_FILE:-$PUBLIC_HTML_DIR/tmp/restart.txt}"
 RELEASE_ID="$(date +%Y%m%d%H%M%S)"
 
 if [ -n "${GITHUB_SHA:-}" ]; then
@@ -65,6 +66,7 @@ restart_app() {
 
   mkdir -p "$(dirname "$PASSENGER_RESTART_FILE")"
   touch "$PASSENGER_RESTART_FILE"
+  log "Signalled Hostinger Passenger restart marker"
 }
 
 switch_current() {
