@@ -144,6 +144,21 @@ function unwrapImportedCodeBlocks(root: HTMLElement) {
   });
 }
 
+function wrapArticleTables(root: HTMLElement) {
+  root.querySelectorAll<HTMLTableElement>("table").forEach((table) => {
+    if (table.parentElement?.classList.contains("article-table-scroll")) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "article-table-scroll";
+    wrapper.setAttribute("role", "region");
+    wrapper.setAttribute("aria-label", "Scrollable data table");
+    wrapper.tabIndex = 0;
+
+    table.before(wrapper);
+    wrapper.append(table);
+  });
+}
+
 function resolveCitationSource(sourceId: string) {
   const decodedSourceId = decodeURIComponent(sourceId);
   const directSource = document.getElementById(decodedSourceId);
@@ -730,6 +745,7 @@ export default function ArticleContent({ html }: ArticleContentProps) {
     const root = rootRef.current;
     if (!root) return;
 
+    wrapArticleTables(root);
     unwrapImportedCodeBlocks(root);
     highlightCodeBlocks(root);
     normalizeLegacySourceLinks(root);
@@ -799,5 +815,5 @@ export default function ArticleContent({ html }: ArticleContentProps) {
     };
   }, [html]);
 
-  return <div ref={rootRef} dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div ref={rootRef} className="article-content" dangerouslySetInnerHTML={{ __html: html }} />;
 }
