@@ -94,6 +94,16 @@ diagnose_passenger() {
   for candidate in "$APP_DIR/current" "$HOME/domains/searchenginebasics.io/nodejs" "$PUBLIC_HTML_DIR"; do
     if [ -e "$candidate" ]; then
       log "App path exists: $candidate"
+
+      if [ -d "$candidate/.next/static/css" ]; then
+        find "$candidate/.next/static/css" -maxdepth 1 -type f -printf '%f\n' 2>/dev/null \
+          | sort \
+          | sed "s#^#CSS bundle at $candidate: #"
+      fi
+
+      if [ -f "$candidate/public/release.txt" ]; then
+        log "Release marker at $candidate: $(cat "$candidate/public/release.txt")"
+      fi
     fi
   done
 
@@ -110,7 +120,7 @@ diagnose_passenger() {
 
     PROCESS_NAME="$(cat "$process_dir/comm" 2>/dev/null || true)"
     case "$PROCESS_NAME" in
-      node|Passenger*)
+      *node*|*Node*|Passenger*|passenger*)
         PROCESS_CWD="$(readlink "$process_dir/cwd" 2>/dev/null || true)"
         log "Process ${process_dir##*/}: $PROCESS_NAME cwd=${PROCESS_CWD:-unavailable}"
         ;;
