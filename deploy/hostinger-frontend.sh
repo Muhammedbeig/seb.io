@@ -54,9 +54,14 @@ restart_app() {
     return
   fi
 
-  if [ -n "$PREVIOUS_RELEASE" ] && [ -d "$PREVIOUS_RELEASE/tmp" ]; then
-    touch "$PREVIOUS_RELEASE/tmp/restart.txt"
-  fi
+  SIGNALLED_RELEASES=0
+  for release_dir in "$RELEASES_DIR"/*; do
+    if [ -d "$release_dir/tmp" ]; then
+      touch "$release_dir/tmp/restart.txt"
+      SIGNALLED_RELEASES=$((SIGNALLED_RELEASES + 1))
+    fi
+  done
+  log "Signalled Passenger restart across $SIGNALLED_RELEASES release path(s)"
 
   mkdir -p "$(dirname "$PASSENGER_RESTART_FILE")"
   touch "$PASSENGER_RESTART_FILE"
