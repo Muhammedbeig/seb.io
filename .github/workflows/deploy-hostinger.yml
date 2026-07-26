@@ -36,6 +36,7 @@ jobs:
 
           npm ci
           npm run build
+          printf '%s\n' "$GITHUB_SHA" > public/release.txt
           rm -rf .next/cache
           npm prune --omit=dev
           tar -czf seb-frontend-release.tgz .next node_modules package.json package-lock.json next.config.mjs server.js public

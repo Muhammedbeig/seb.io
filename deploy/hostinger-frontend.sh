@@ -54,6 +54,10 @@ restart_app() {
     return
   fi
 
+  if [ -n "$PREVIOUS_RELEASE" ] && [ -d "$PREVIOUS_RELEASE/tmp" ]; then
+    touch "$PREVIOUS_RELEASE/tmp/restart.txt"
+  fi
+
   mkdir -p "$(dirname "$PASSENGER_RESTART_FILE")"
   touch "$PASSENGER_RESTART_FILE"
 }
@@ -140,9 +144,21 @@ restart_app
 
 if [ -n "${HEALTH_URL:-}" ]; then
   log "Checking $HEALTH_URL"
+  HEALTH_CHECK_URL="$HEALTH_URL"
+
+  if [ -n "${GITHUB_SHA:-}" ]; then
+    HEALTH_CHECK_URL="${HEALTH_URL%/}/release.txt?sha=$GITHUB_SHA"
+  fi
 
   for attempt in 1 2 3 4 5 6 7 8 9 10; do
-    if curl -fsS --max-time 10 "$HEALTH_URL" >/dev/null; then
+    HEALTH_RESPONSE="$(curl -fsS --max-time 10 "$HEALTH_CHECK_URL" 2>/dev/null || true)"
+
+    if [ -n "${GITHUB_SHA:-}" ]; then
+      if [ "$HEALTH_RESPONSE" = "$GITHUB_SHA" ]; then
+        log "Health check passed for $GITHUB_SHA"
+        break
+      fi
+    elif [ -n "$HEALTH_RESPONSE" ]; then
       log "Health check passed"
       break
     fi
