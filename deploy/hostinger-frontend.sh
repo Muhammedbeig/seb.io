@@ -38,6 +38,34 @@ require_command() {
   fi
 }
 
+restart_litespeed_workers() {
+  local current_uid process_dir process_uid process_name process_cwd
+  local worker_pids=()
+
+  current_uid="$(id -u)"
+  for process_dir in /proc/[0-9]*; do
+    process_uid="$(awk '/^Uid:/{print $2}' "$process_dir/status" 2>/dev/null || true)"
+    [ "$process_uid" = "$current_uid" ] || continue
+
+    process_name="$(cat "$process_dir/comm" 2>/dev/null || true)"
+    case "$process_name" in
+      lsnode|lsnode:*)
+        process_cwd="$(readlink "$process_dir/cwd" 2>/dev/null || true)"
+        case "$process_cwd" in
+          "$RELEASES_DIR"/*)
+            worker_pids+=("${process_dir##*/}")
+            ;;
+        esac
+        ;;
+    esac
+  done
+
+  if [ "${#worker_pids[@]}" -gt 0 ]; then
+    kill -TERM "${worker_pids[@]}" 2>/dev/null || true
+    log "Restarted ${#worker_pids[@]} LiteSpeed worker(s) for $APP_NAME"
+  fi
+}
+
 restart_app() {
   if [ -n "${RESTART_COMMAND:-}" ]; then
     cd "$CURRENT_LINK"
@@ -75,6 +103,8 @@ restart_app() {
   mkdir -p "$(dirname "$PASSENGER_RESTART_FILE")"
   touch "$PASSENGER_RESTART_FILE"
   log "Signalled Hostinger Passenger restart marker"
+
+  restart_litespeed_workers
 }
 
 switch_current() {
