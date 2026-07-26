@@ -72,20 +72,47 @@ jobs:
           if [ -n "${SSH_PRIVATE_KEY}" ]; then
             printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/hostinger_key"
             chmod 600 "$HOME/.ssh/hostinger_key"
-            SSH=(ssh -o StrictHostKeyChecking=no -i "$HOME/.ssh/hostinger_key" -p "$SSH_PORT")
-            SCP=(scp -o StrictHostKeyChecking=no -i "$HOME/.ssh/hostinger_key" -P "$SSH_PORT")
+            SSH=(ssh -o StrictHostKeyChecking=no -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -i "$HOME/.ssh/hostinger_key" -p "$SSH_PORT")
+            SCP=(scp -o StrictHostKeyChecking=no -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -i "$HOME/.ssh/hostinger_key" -P "$SSH_PORT")
           else
             sudo apt-get update
             sudo apt-get install -y sshpass
-            SSH=(sshpass -e ssh -o StrictHostKeyChecking=no -p "$SSH_PORT")
-            SCP=(sshpass -e scp -o StrictHostKeyChecking=no -P "$SSH_PORT")
+            SSH=(sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -p "$SSH_PORT")
+            SCP=(sshpass -e scp -o StrictHostKeyChecking=no -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -P "$SSH_PORT")
             export SSHPASS="$SSH_PASSWORD"
           fi
 
+          retry_connection() {
+            local attempt=1
+            local max_attempts=5
+            local status
+
+            while true; do
+              if "$@"; then
+                return 0
+              else
+                status=$?
+              fi
+
+              if [ "$status" -ne 255 ]; then
+                return "$status"
+              fi
+
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                echo "::error::Remote connection failed after ${max_attempts} attempts."
+                return "$status"
+              fi
+
+              echo "::warning::Remote connection attempt ${attempt} failed; retrying in 15 seconds."
+              attempt=$((attempt + 1))
+              sleep 15
+            done
+          }
+
           remote_script="/tmp/seb-frontend-deploy-${GITHUB_RUN_ID}.sh"
           remote_artifact="/tmp/seb-frontend-release-${GITHUB_RUN_ID}.tgz"
-          "${SCP[@]}" deploy/hostinger-frontend.sh "$SSH_USER@$SSH_HOST:$remote_script"
-          "${SCP[@]}" seb-frontend-release.tgz "$SSH_USER@$SSH_HOST:$remote_artifact"
+          retry_connection "${SCP[@]}" deploy/hostinger-frontend.sh "$SSH_USER@$SSH_HOST:$remote_script"
+          retry_connection "${SCP[@]}" seb-frontend-release.tgz "$SSH_USER@$SSH_HOST:$remote_artifact"
 
           remote_env=(
             "APP_NAME=seb.io"
@@ -106,5 +133,5 @@ jobs:
 
           printf -v remote_prefix '%q ' "${remote_env[@]}"
 
-          "${SSH[@]}" "$SSH_USER@$SSH_HOST" \
+          retry_connection "${SSH[@]}" "$SSH_USER@$SSH_HOST" \
             "chmod +x '$remote_script' && ${remote_prefix}bash '$remote_script'; status=\$?; rm -f '$remote_script' '$remote_artifact'; exit \$status"
