@@ -55,6 +55,14 @@ restart_app() {
     return
   fi
 
+  if command -v passenger-config >/dev/null 2>&1; then
+    if passenger-config restart-app "$APP_DIR"; then
+      log "Restarted Passenger application through passenger-config"
+    elif passenger-config restart-app "$PUBLIC_HTML_DIR"; then
+      log "Restarted Hostinger Passenger application through passenger-config"
+    fi
+  fi
+
   SIGNALLED_RELEASES=0
   for release_dir in "$RELEASES_DIR"/*; do
     if [ -d "$release_dir/tmp" ]; then
@@ -154,10 +162,11 @@ if [ -n "${HEALTH_URL:-}" ]; then
   HEALTH_CHECK_URL="$HEALTH_URL"
 
   if [ -n "${GITHUB_SHA:-}" ]; then
-    HEALTH_CHECK_URL="${HEALTH_URL%/}/release.txt?sha=$GITHUB_SHA"
+    HEALTH_ORIGIN="$(printf '%s\n' "$HEALTH_URL" | sed -E 's#^(https?://[^/]+).*$#\1#')"
+    HEALTH_CHECK_URL="${HEALTH_ORIGIN%/}/release.txt?sha=$GITHUB_SHA"
   fi
 
-  for attempt in 1 2 3 4 5 6 7 8 9 10; do
+  for attempt in {1..20}; do
     HEALTH_RESPONSE="$(curl -fsS --max-time 10 "$HEALTH_CHECK_URL" 2>/dev/null || true)"
 
     if [ -n "${GITHUB_SHA:-}" ]; then
@@ -170,7 +179,7 @@ if [ -n "${HEALTH_URL:-}" ]; then
       break
     fi
 
-    if [ "$attempt" = "10" ]; then
+    if [ "$attempt" = "20" ]; then
       log "Health check failed"
       rollback
       exit 1
