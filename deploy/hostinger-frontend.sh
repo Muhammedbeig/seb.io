@@ -82,6 +82,44 @@ switch_current() {
   mv -Tf "$CURRENT_LINK.next" "$CURRENT_LINK"
 }
 
+diagnose_passenger() {
+  log "Passenger diagnostics begin"
+  log "Current release: $(readlink "$CURRENT_LINK" 2>/dev/null || printf 'unavailable')"
+
+  if [ -f "$PUBLIC_HTML_DIR/.htaccess" ]; then
+    grep -E '^[[:space:]]*Passenger(AppRoot|AppType|Nodejs|StartupFile|BaseURI|RestartDir)[[:space:]]' \
+      "$PUBLIC_HTML_DIR/.htaccess" || true
+  fi
+
+  for candidate in "$APP_DIR/current" "$HOME/domains/searchenginebasics.io/nodejs" "$PUBLIC_HTML_DIR"; do
+    if [ -e "$candidate" ]; then
+      log "App path exists: $candidate"
+    fi
+  done
+
+  find "$HOME/domains/searchenginebasics.io" "$RELEASES_DIR" \
+    -maxdepth 3 \
+    -type f \
+    \( -name server.js -o -name restart.txt -o -name package.json \) \
+    -print 2>/dev/null | sort | tail -n 40 || true
+
+  CURRENT_UID="$(id -u)"
+  for process_dir in /proc/[0-9]*; do
+    PROCESS_UID="$(awk '/^Uid:/{print $2}' "$process_dir/status" 2>/dev/null || true)"
+    [ "$PROCESS_UID" = "$CURRENT_UID" ] || continue
+
+    PROCESS_NAME="$(cat "$process_dir/comm" 2>/dev/null || true)"
+    case "$PROCESS_NAME" in
+      node|Passenger*)
+        PROCESS_CWD="$(readlink "$process_dir/cwd" 2>/dev/null || true)"
+        log "Process ${process_dir##*/}: $PROCESS_NAME cwd=${PROCESS_CWD:-unavailable}"
+        ;;
+    esac
+  done
+
+  log "Passenger diagnostics end"
+}
+
 rollback() {
   if [ -n "$PREVIOUS_RELEASE" ] && [ -d "$PREVIOUS_RELEASE" ]; then
     log "Rolling back $APP_NAME to $PREVIOUS_RELEASE"
@@ -181,6 +219,7 @@ if [ -n "${HEALTH_URL:-}" ]; then
 
     if [ "$attempt" = "20" ]; then
       log "Health check failed"
+      diagnose_passenger
       rollback
       exit 1
     fi
