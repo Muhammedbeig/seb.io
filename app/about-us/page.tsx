@@ -75,7 +75,7 @@ export default async function AboutPage() {
                   <p>That's exactly the gap we built this site to fill.</p>
 
                   <h2 className="text-xl font-bold text-[#E8E8F0] mt-8" style={{ fontFamily: "var(--font-syne)" }}>Who We Are</h2>
-                  <p>We are a team of SEO practitioners, researchers, and educators who got tired of surface-level advice. We spent years studying how search engines actually work, the crawling, the indexing, the ranking signals, the algorithms — and we noticed something: people who understand the system never have to memorize tactics. The right moves become obvious.</p>
+                  <p>We are a team of SEO practitioners, researchers, and educators who got tired of surface-level advice. We spent years studying how search engines actually work, the crawling, the indexing, the ranking signals, the algorithms, and we noticed something: people who understand the system never have to memorize tactics. The right moves become obvious.</p>
                   <p>So we built a place where that understanding comes first.</p>
 
                   <h2 className="text-xl font-bold text-[#E8E8F0] mt-8" style={{ fontFamily: "var(--font-syne)" }}>What We Actually Teach</h2>

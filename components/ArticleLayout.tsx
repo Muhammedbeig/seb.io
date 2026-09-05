@@ -235,19 +235,16 @@ function isoDate(value?: string | null) {
 }
 
 function articleAuthorSchema(author?: Author) {
-  if (!author) {
-    return {
-      "@type": "Organization",
-      name: "Search Engine Basics",
-      url: absoluteSiteUrl("/"),
-    };
-  }
+  const authorSlug = author?.slug || "muhammad-baig";
+  const authorName = author?.name || "Muhammad Baig";
+  const authorUrl = absoluteSiteUrl(`/authors/${authorSlug}`);
 
   return {
     "@type": "Person",
-    "@id": `${absoluteSiteUrl(`/authors/${author.slug}`)}#person`,
-    name: author.name,
-    url: absoluteSiteUrl(`/authors/${author.slug}`),
+    "@id": `${authorUrl}#person`,
+    name: authorName,
+    url: authorUrl,
+    jobTitle: author?.role || "Software Engineer & Mathematical Verifier",
   };
 }
 

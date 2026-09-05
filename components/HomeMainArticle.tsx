@@ -89,13 +89,13 @@ export default async function HomeMainArticle() {
     <section id="main-guide" className="py-24 border-y border-[#1E1E30]" style={{ background: "var(--surface)" }}>
       <HomeFaqSchema faqs={faqs} />
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
-        <div className="max-w-3xl">
+        <div className="max-w-4xl">
           <span className="tag">Main Guide</span>
           <h1
-            className="mt-5 text-[#E8E8F0] leading-tight"
+            className="mt-4 text-[#E8E8F0] tracking-tight leading-[1.15]"
             style={{
               fontFamily: "var(--font-syne)",
-              fontSize: "clamp(2.4rem, 6vw, 4.8rem)",
+              fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)",
               fontWeight: 800,
             }}
           >

@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   applicationName: "Search Engine Basics",
   title: "Search Engine Basics: A Step-by-Step SEO Guide for Beginners",
   description:
-    "Master search engine basics — learn how crawling, indexing, and ranking work. Build your SEO Knowledge from beginner to expert. Your SEO marketing starts here.",
+    "Master search engine basics, learn how crawling, indexing, and ranking work. Build your SEO Knowledge from beginner to expert. Your SEO marketing starts here.",
   authors: [{ name: "Search Engine Basics" }],
   alternates: {
     canonical: "/",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Search Engine Basics: A Step-by-Step SEO Guide for Beginners",
-    description: "Master search engine basics — learn how crawling, indexing, and ranking work.",
+    description: "Master search engine basics, learn how crawling, indexing, and ranking work.",
     url: SITE_URL,
     siteName: "Search Engine Basics",
     type: "website",
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Search Engine Basics: A Step-by-Step SEO Guide for Beginners",
-    description: "Master search engine basics — learn how crawling, indexing, and ranking work.",
+    description: "Master search engine basics, learn how crawling, indexing, and ranking work.",
     images: ["/Thumbnail.png"],
   },
 };

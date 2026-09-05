@@ -777,7 +777,7 @@ export default function ArticleContent({ html }: ArticleContentProps) {
       const target = event.target;
       if (!(target instanceof Element)) return;
 
-      // Popover external links take priority — open URL in new tab
+      // Popover external links take priority - open URL in new tab
       const popoverLink = target.closest<HTMLElement>(".citation-popover-link");
       if (popoverLink) {
         const href = popoverLink.dataset.href;

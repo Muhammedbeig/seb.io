@@ -7,6 +7,25 @@ const LEGACY_REDIRECTS: Record<string, string> = {
   "/search-engine-crawling": "/crawling",
 };
 
+const ARTICLE_ROOT_REDIRECTS: Record<string, string> = {
+  "/how-to-know-if-your-seo-is-working": "/seo-basics/how-to-know-if-your-seo-is-working",
+  "/seo-basics-beginners-guide": "/seo-basics/seo-basics-beginners-guide",
+  "/how-to-sell-search-engine-optimization": "/seo-basics/how-to-sell-search-engine-optimization",
+  "/how-to-search-keywords-on-a-webpage": "/seo-basics/how-to-search-keywords-on-a-webpage",
+  "/search-engine-positioning-seo": "/seo-basics/search-engine-positioning-seo",
+  "/seo-terms": "/seo-basics/seo-terms",
+  "/search-engine-importance": "/basics/search-engine-importance",
+  "/parts-of-search-engine": "/basics/parts-of-search-engine",
+  "/browser-or-search-engine": "/basics/browser-or-search-engine",
+  "/popular-search-engines": "/basics/popular-search-engines",
+  "/html-code-for-creating-a-search-engine": "/basics/html-code-for-creating-a-search-engine",
+  "/web-indexing": "/indexing/web-indexing",
+  "/how-to-rank-higher-on-google": "/ranking/how-to-rank-higher-on-google",
+  "/what-is-a-search-engine-algorithm": "/algorithms/what-is-a-search-engine-algorithm",
+  "/what-does-serp-stand-for": "/serp-basics/what-does-serp-stand-for",
+  "/how-to-view-your-site-as-googlebot": "/crawling/how-to-view-your-site-as-googlebot",
+};
+
 function isRetiredPath(pathname: string) {
   return RETIRED_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
@@ -26,6 +45,13 @@ export function middleware(request: NextRequest) {
   if (legacyTarget) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = legacyTarget;
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
+  const rootArticleTarget = ARTICLE_ROOT_REDIRECTS[request.nextUrl.pathname];
+  if (rootArticleTarget) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = rootArticleTarget;
     return NextResponse.redirect(redirectUrl, 301);
   }
 
