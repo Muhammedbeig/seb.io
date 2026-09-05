@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import ArticleContent from "@/components/ArticleContent";
 import ArticleLayout from "@/components/ArticleLayout";
-import { getBlogArticle, getSeriesBySlug } from "@/lib/cms";
+import { getArticleRedirect, getBlogArticle, getSeriesBySlug } from "@/lib/cms";
 
 type PageProps = {
   params: { slug: string; articleSlug: string };
@@ -42,7 +42,17 @@ export default async function NestedArticlePage({ params }: PageProps) {
     getBlogArticle(params.articleSlug),
   ]);
 
-  if (!series || !article || article.categorySlug !== params.slug) {
+  if (!article) {
+    const redirectTarget = await getArticleRedirect(params.articleSlug);
+    if (redirectTarget) permanentRedirect(redirectTarget);
+    notFound();
+  }
+
+  if (article.categorySlug && article.categorySlug !== params.slug) {
+    permanentRedirect(`/${article.categorySlug}/${article.slug}`);
+  }
+
+  if (!series || article.categorySlug !== params.slug) {
     notFound();
   }
 
@@ -57,6 +67,8 @@ export default async function NestedArticlePage({ params }: PageProps) {
       updatedOn={article.updatedOn}
       readTime={article.readTime}
       relatedPosts={article.relatedPosts}
+      relatedHeading={article.relatedHeading}
+      relatedIntro={article.relatedIntro}
       seriesArticles={article.seriesArticles}
       seriesTitle={series.title}
       currentSlug={article.slug}
@@ -70,6 +82,7 @@ export default async function NestedArticlePage({ params }: PageProps) {
       editors={article.editors}
       faqs={article.faqs}
       shareLinks={article.shareLinks}
+      hasMath={article.content.includes("block-equation")}
     >
       <ArticleContent html={article.content} />
     </ArticleLayout>
