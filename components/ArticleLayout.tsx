@@ -50,12 +50,15 @@ interface ArticleLayoutProps {
   reviewers?: Author[];
   editors?: Author[];
   relatedPosts?: RelatedPost[];
+  relatedHeading?: string | null;
+  relatedIntro?: string | null;
   seriesArticles?: ArticleSummary[];
   seriesTitle?: string;
   faqs?: ArticleFaq[];
   currentSlug?: string;
   canonicalPath?: string;
   shareLinks?: ShareLinks;
+  hasMath?: boolean;
 }
 
 function slugFromHref(href: string) {
@@ -242,6 +245,7 @@ function articleAuthorSchema(author?: Author) {
 
   return {
     "@type": "Person",
+    "@id": `${absoluteSiteUrl(`/authors/${author.slug}`)}#person`,
     name: author.name,
     url: absoluteSiteUrl(`/authors/${author.slug}`),
   };
@@ -250,6 +254,7 @@ function articleAuthorSchema(author?: Author) {
 function organizationSchema() {
   return {
     "@type": "Organization",
+    "@id": `${absoluteSiteUrl("/")}#organization`,
     name: "Search Engine Basics",
     url: absoluteSiteUrl("/"),
     logo: {
@@ -319,6 +324,8 @@ function ArticleStructuredData({
   date,
   updatedOn,
   author,
+  additionalAuthors,
+  reviewers,
   canonicalPath,
   seriesTitle,
   tag,
@@ -329,6 +336,8 @@ function ArticleStructuredData({
   date: string;
   updatedOn?: string | null;
   author?: Author;
+  additionalAuthors: Author[];
+  reviewers: Author[];
   canonicalPath: string;
   seriesTitle?: string;
   tag: string;
@@ -340,6 +349,10 @@ function ArticleStructuredData({
   const firstPathSegment = canonicalPath.split("/").filter(Boolean)[0];
   const seriesPath = firstPathSegment ? `/${firstPathSegment}` : "/blog";
   const seriesName = seriesTitle || tag || "Articles";
+  const namedAuthors = [author, ...additionalAuthors].filter((item): item is Author => Boolean(item));
+  const schemaAuthors = namedAuthors.length > 0
+    ? namedAuthors.map((item) => articleAuthorSchema(item))
+    : [articleAuthorSchema()];
 
   const webPage = {
     "@context": "https://schema.org",
@@ -367,7 +380,10 @@ function ArticleStructuredData({
     image: [imageUrl],
     datePublished: publishedDate,
     dateModified: modifiedDate,
-    author: articleAuthorSchema(author),
+    author: schemaAuthors,
+    ...(reviewers.length > 0
+      ? { reviewedBy: reviewers.map((reviewer) => articleAuthorSchema(reviewer)) }
+      : {}),
     publisher: organizationSchema(),
     mainEntityOfPage: {
       "@type": "WebPage",
@@ -455,6 +471,56 @@ function ArticlePager({
   );
 }
 
+function RelatedReading({
+  posts,
+  heading,
+  intro,
+}: {
+  posts: RelatedPost[];
+  heading?: string | null;
+  intro?: string | null;
+}) {
+  if (posts.length === 0) return null;
+
+  return (
+    <section className="mt-12" aria-labelledby="related-reading-heading">
+      <h2
+        id="related-reading-heading"
+        className="text-xl font-bold text-[#E8E8F0]"
+        style={{ fontFamily: "var(--font-syne)" }}
+      >
+        {heading?.trim() || "Continue Reading"}
+      </h2>
+      {intro?.trim() && (
+        <p className="mt-2 text-sm leading-relaxed text-[#8F8FA3]">{intro}</p>
+      )}
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        {posts.map((post) => (
+          <Link
+            key={post.href}
+            href={post.href}
+            className="group rounded-lg border border-[#1E1E30] p-5 transition-colors hover:border-[#B8FF35]/45 hover:bg-[#0F0F1A]"
+            style={{ background: "var(--card)" }}
+          >
+            <span
+              className="text-[10px] font-semibold uppercase tracking-widest"
+              style={{ color: post.tagColor || "#B8FF35", fontFamily: "var(--font-dm-mono)" }}
+            >
+              {post.tag}
+            </span>
+            <span
+              className="mt-2 block text-sm font-semibold leading-snug text-[#E8E8F0] transition-colors group-hover:text-[#B8FF35]"
+              style={{ fontFamily: "var(--font-syne)" }}
+            >
+              {post.title}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function ArticleLayout({
   tag,
   tagColor,
@@ -473,12 +539,15 @@ export default function ArticleLayout({
   reviewers = [],
   editors = [],
   relatedPosts = [],
+  relatedHeading,
+  relatedIntro,
   seriesArticles = [],
   seriesTitle,
   faqs = [],
   currentSlug,
   canonicalPath,
   shareLinks,
+  hasMath = false,
 }: ArticleLayoutProps) {
   const hasContributors =
     !!author || additionalAuthors.length > 0 || reviewers.length > 0 || editors.length > 0;
@@ -517,12 +586,14 @@ export default function ArticleLayout({
         date={date}
         updatedOn={updatedOn}
         author={author}
+        additionalAuthors={additionalAuthors}
+        reviewers={reviewers}
         canonicalPath={schemaCanonicalPath}
         seriesTitle={seriesTitle}
         tag={tag}
       />
       <FaqSchema faqs={faqs} />
-      <MathJaxLoader />
+      {hasMath && <MathJaxLoader />}
       <PageShell>
         <header className="pt-36 pb-12 relative overflow-hidden">
           <div className="absolute inset-0 grid-bg pointer-events-none" />
@@ -586,6 +657,31 @@ export default function ArticleLayout({
               <span>.</span>
               <span>{readTime} read</span>
             </div>
+            {(author || reviewers.length > 0) && (
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#8F8FA3]">
+                {author && (
+                  <span>
+                    Written by{" "}
+                    <Link href={`/authors/${author.slug}`} rel="author" className="font-semibold text-[#E8E8F0] hover:text-[#B8FF35]">
+                      {author.name}
+                    </Link>
+                  </span>
+                )}
+                {reviewers.length > 0 && (
+                  <span>
+                    Reviewed by{" "}
+                    {reviewers.map((reviewer, index) => (
+                      <span key={reviewer.id}>
+                        {index > 0 && ", "}
+                        <Link href={`/authors/${reviewer.slug}`} className="font-semibold text-[#E8E8F0] hover:text-[#B8FF35]">
+                          {reviewer.name}
+                        </Link>
+                      </span>
+                    ))}
+                  </span>
+                )}
+              </div>
+            )}
             {(updatedOn || updatedBy) && (
               <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#6B6B80]" style={{ fontFamily: "var(--font-dm-mono)" }}>
                 {updatedOn && (
@@ -634,6 +730,8 @@ export default function ArticleLayout({
                 <ShareButtons links={shareLinks} title={title} />
 
                 <ArticlePager previous={previousArticle} next={nextArticle} />
+
+                <RelatedReading posts={relatedPosts} heading={relatedHeading} intro={relatedIntro} />
 
                 {hasContributors && (
                   <section className="mt-12 rounded-lg border border-[#1E1E30] p-6 space-y-6" style={{ background: "var(--card)" }} aria-labelledby="about-contributors">
