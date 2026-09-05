@@ -54,6 +54,9 @@ export type BlogArticle = BlogSummary & {
   content: string;
   metaTitle?: string | null;
   metaDescription?: string | null;
+  relatedHeading?: string | null;
+  relatedIntro?: string | null;
+  relatedMode?: "manual" | null;
   author?: Author;
   updatedBy?: Author | null;
   additionalAuthors?: Author[];
@@ -82,6 +85,10 @@ export type SiteSettings = {
   gtm_container_id?: string;
   default_thumbnail?: string | null;
   home_main_article_markdown?: string | null;
+  instagram_link?: string | null;
+  x_link?: string | null;
+  facebook_link?: string | null;
+  tiktok_link?: string | null;
 };
 
 export type HomeMainArticleSettings = {
@@ -503,9 +510,12 @@ export async function getBlogArticle(slug: string): Promise<BlogArticle | null> 
       editors: response.data.editors,
       metaTitle: response.data.metaTitle,
       metaDescription: response.data.metaDescription,
+      relatedHeading: response.data.relatedHeading,
+      relatedIntro: response.data.relatedIntro,
+      relatedMode: response.data.relatedMode === "manual" ? "manual" : null,
       shareLinks: response.data.shareLinks,
       faqs: normalizeFaqs(response.data.faqs),
-      relatedPosts: (response.seriesArticles || response.related)?.map((post: any) => {
+      relatedPosts: (response.data.relatedMode === "manual" ? response.related : [])?.map((post: any) => {
         const postSlug = post.slug || post.href?.replace(/^\//, "") || "";
         return {
           title: post.title,
@@ -529,6 +539,17 @@ export async function getBlogArticle(slug: string): Promise<BlogArticle | null> 
 export async function getSiteSettings(): Promise<SiteSettings> {
   const response = await fetchCms<SiteSettings>(`/site/settings`);
   return response?.data ?? {};
+}
+
+export async function getArticleRedirect(slug: string): Promise<string | null> {
+  const response = await fetchCms<{ targetPath?: string }>(`/site/redirects/${encodeURIComponent(slug)}`);
+  const targetPath = response?.data?.targetPath?.trim();
+
+  if (!targetPath || !targetPath.startsWith("/") || targetPath.startsWith("//")) {
+    return null;
+  }
+
+  return targetPath;
 }
 
 export async function getHomeMainArticleSettings(): Promise<HomeMainArticleSettings> {
