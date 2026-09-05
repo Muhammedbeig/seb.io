@@ -7,11 +7,30 @@ import ArticlePeekCard from "@/components/ArticlePeekCard";
 import ContentImage from "@/components/ContentImage";
 import JsonLd from "@/components/JsonLd";
 import PageShell from "@/components/PageShell";
-import { getBlogArticle, getSeriesBySlug } from "@/lib/cms";
+import { getArticleRedirect, getBlogArticle, getSeriesBySlug } from "@/lib/cms";
 import { absoluteSiteUrl } from "@/lib/site";
 
 type PageProps = {
   params: { slug: string };
+};
+
+const seriesMetadataDefaults: Record<string, { title: string; description: string }> = {
+  "seo-basics": {
+    title: "SEO Basics: A Practical Beginner Guide to Manual SEO",
+    description: "Learn SEO basics through a practical manual workflow covering keywords, on-page improvements, measurement, positioning, and sustainable search visibility.",
+  },
+  indexing: {
+    title: "Web Indexing: How Search Engines Store and Retrieve Pages",
+    description: "Learn how web indexing works, why pages are excluded, how to inspect a URL, and how to help search engines discover the right version of your content.",
+  },
+  ranking: {
+    title: "How to Rank on Google: Practical Search Ranking Guides",
+    description: "Learn how to rank higher on Google by fixing indexability, matching search intent, improving page quality, earning trust, and measuring meaningful gains.",
+  },
+  crawling: {
+    title: "View Your Site as Google: Googlebot and Crawling Guides",
+    description: "Learn how to view rendered pages as Googlebot, inspect crawl issues, test resources, and confirm that search engines can access your important content.",
+  },
 };
 
 function SeriesStructuredData({
@@ -82,22 +101,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   ]);
 
   if (series) {
+    const fallbackMetadata = seriesMetadataDefaults[series.slug];
+    const metaTitle = series.meta_title || fallbackMetadata?.title || `${series.title} Guides | Search Engine Basics`;
+    const metaDescription = series.meta_description || series.description || fallbackMetadata?.description || `Explore practical ${series.title} guides from Search Engine Basics.`;
+
     return {
-      title: series.meta_title || series.title,
-      description: series.meta_description || series.description,
+      title: metaTitle,
+      description: metaDescription,
       alternates: {
         canonical: `https://searchenginebasics.io/${series.slug}`,
       },
       openGraph: {
-        title: series.meta_title || series.title,
-        description: series.meta_description || series.description,
+        title: metaTitle,
+        description: metaDescription,
         url: `https://searchenginebasics.io/${series.slug}`,
         images: [{ url: series.image || "/Thumbnail.png" }],
       },
       twitter: {
         card: "summary_large_image",
-        title: series.meta_title || series.title,
-        description: series.meta_description || series.description,
+        title: metaTitle,
+        description: metaDescription,
         images: [series.image || "/Thumbnail.png"],
       },
     };
@@ -143,7 +166,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
       <main>
         <SeriesStructuredData
           title={series.title}
-          description={series.meta_description || series.description}
+          description={series.meta_description || series.description || seriesMetadataDefaults[series.slug]?.description}
           slug={series.slug}
           image={series.image}
         />
@@ -208,6 +231,13 @@ export default async function DynamicSlugPage({ params }: PageProps) {
 
           <section className="pb-24 pt-10">
             <div className="max-w-6xl mx-auto px-6 lg:px-8">
+              {series.content && (
+                <article
+                  className="prose-custom mb-10 rounded-lg border border-[#1E1E30] p-6 sm:p-8"
+                  style={{ background: "var(--card)" }}
+                  dangerouslySetInnerHTML={{ __html: series.content }}
+                />
+              )}
               {series.isComingSoon && series.articles.length === 0 ? (
                 <div className="rounded-lg border border-[#1E1E30] p-6" style={{ background: "var(--card)" }}>
                   <p className="text-sm font-semibold text-[#05e1f5]" style={{ fontFamily: "var(--font-dm-mono)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
@@ -271,6 +301,8 @@ export default async function DynamicSlugPage({ params }: PageProps) {
   }
 
   if (!article) {
+    const redirectTarget = await getArticleRedirect(params.slug);
+    if (redirectTarget) permanentRedirect(redirectTarget);
     notFound();
   }
 
@@ -289,6 +321,8 @@ export default async function DynamicSlugPage({ params }: PageProps) {
       updatedOn={article.updatedOn}
       readTime={article.readTime}
       relatedPosts={article.relatedPosts}
+      relatedHeading={article.relatedHeading}
+      relatedIntro={article.relatedIntro}
       seriesArticles={article.seriesArticles}
       currentSlug={article.slug}
       canonicalPath={article.categorySlug ? `/${article.categorySlug}/${article.slug}` : `/${article.slug}`}
@@ -301,6 +335,7 @@ export default async function DynamicSlugPage({ params }: PageProps) {
       editors={article.editors}
       faqs={article.faqs}
       shareLinks={article.shareLinks}
+      hasMath={article.content.includes("block-equation")}
     >
       <ArticleContent html={article.content} />
     </ArticleLayout>
