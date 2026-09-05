@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import ArticlePeekCard from "@/components/ArticlePeekCard";
 import ContentImage from "@/components/ContentImage";
+import JsonLd from "@/components/JsonLd";
 import PageShell from "@/components/PageShell";
 import { getAuthor } from "@/lib/cms";
+import { absoluteSiteUrl } from "@/lib/site";
 
 type PageProps = {
   params: { slug: string };
@@ -17,9 +19,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${author.name} | Search Engine Basics`,
     description: author.bio || author.role || `Read articles by ${author.name} on Search Engine Basics.`,
+    alternates: {
+      canonical: `/authors/${author.slug}`,
+    },
     openGraph: {
       title: `${author.name} | Search Engine Basics`,
       description: author.bio || author.role || `Read articles by ${author.name}.`,
+      url: `/authors/${author.slug}`,
       images: [{ url: author.avatar_url || author.avatar || "/Thumbnail.png" }],
     },
   };
@@ -31,9 +37,32 @@ export default async function AuthorPage({ params }: PageProps) {
 
   const avatarRaw = author.avatar_url || author.avatar;
   const avatar = avatarRaw && !avatarRaw.startsWith("http") && !avatarRaw.startsWith("/") ? `/${avatarRaw}` : avatarRaw;
+  const profileUrl = absoluteSiteUrl(`/authors/${author.slug}`);
+  const sameAs = [author.website_url, ...Object.values(author.social_links || {})]
+    .filter((url): url is string => Boolean(url?.trim()));
 
   return (
     <main>
+      <JsonLd
+        id="author-profile-schema"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ProfilePage",
+          "@id": profileUrl,
+          url: profileUrl,
+          name: `${author.name} | Search Engine Basics`,
+          mainEntity: {
+            "@type": "Person",
+            "@id": `${profileUrl}#person`,
+            name: author.name,
+            url: profileUrl,
+            ...(author.role ? { jobTitle: author.role } : {}),
+            ...(author.bio ? { description: author.bio } : {}),
+            ...(avatar ? { image: absoluteSiteUrl(avatar) } : {}),
+            ...(sameAs.length > 0 ? { sameAs } : {}),
+          },
+        }}
+      />
       <PageShell>
         <section className="pt-32 pb-16 relative overflow-hidden">
           <div className="absolute inset-0 grid-bg opacity-100 pointer-events-none" />
