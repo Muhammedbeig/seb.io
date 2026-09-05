@@ -6,6 +6,15 @@ export const metadata = {
   title: "SEO Articles: Crawling, Indexing & Ranking Deep Dives | SEB",
   description:
     "Browse every technical article on how search engines work — covering crawling, indexing, ranking algorithms, and query processing. Structured for methodical learning.",
+  alternates: {
+    canonical: "/blog",
+  },
+  openGraph: {
+    title: "SEO Articles: Crawling, Indexing & Ranking Deep Dives | SEB",
+    description:
+      "Browse every technical article on how search engines work — covering crawling, indexing, ranking algorithms, and query processing. Structured for methodical learning.",
+    url: "/blog",
+  },
 };
 
 export default async function BlogPage() {
