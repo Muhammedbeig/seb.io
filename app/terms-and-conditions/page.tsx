@@ -1,5 +1,19 @@
+import type { Metadata } from "next";
 import PageShell from "@/components/PageShell";
 import { getCompanyPage } from "@/lib/cms";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCompanyPage("terms-and-conditions");
+  const title = page?.meta_title || page?.title || "Terms and Conditions | Search Engine Basics";
+  const description = page?.meta_description || page?.excerpt || "Read the Search Engine Basics terms and conditions.";
+
+  return {
+    title,
+    description,
+    alternates: { canonical: "/terms-and-conditions" },
+    openGraph: { title, description, url: "/terms-and-conditions" },
+  };
+}
 
 export default async function TermsPage() {
   const page = await getCompanyPage("terms-and-conditions");

@@ -6,6 +6,14 @@ import { getAuthors } from "@/lib/cms";
 export const metadata: Metadata = {
   title: "Authors | Search Engine Basics",
   description: "Meet the Search Engine Basics authors, reviewers, educators, and technical contributors.",
+  alternates: {
+    canonical: "/authors",
+  },
+  openGraph: {
+    title: "Authors | Search Engine Basics",
+    description: "Meet the Search Engine Basics authors, reviewers, educators, and technical contributors.",
+    url: "/authors",
+  },
 };
 
 export default async function AuthorsPage() {

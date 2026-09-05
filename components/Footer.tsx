@@ -2,6 +2,13 @@ import Link from "next/link";
 import type { Author } from "@/lib/cms";
 import type { NavSeries } from "./Navbar";
 
+export type FooterSocialLinks = {
+  x?: string | null;
+  instagram?: string | null;
+  tiktok?: string | null;
+  facebook?: string | null;
+};
+
 const staticFooterLinks = {
   Company: [
     { label: "About Us", href: "/about-us" },
@@ -14,7 +21,15 @@ const staticFooterLinks = {
   ],
 };
 
-export default function Footer({ series = [], authors = [] }: { series?: NavSeries[]; authors?: Author[] }) {
+export default function Footer({
+  series = [],
+  authors = [],
+  socialLinks = {},
+}: {
+  series?: NavSeries[];
+  authors?: Author[];
+  socialLinks?: FooterSocialLinks;
+}) {
   const seriesLinks = series.map((s) => ({
     label: s.title,
     href: `/${s.slug}`,
@@ -29,6 +44,12 @@ export default function Footer({ series = [], authors = [] }: { series?: NavSeri
     Authors: authorLinks.length > 0 ? authorLinks : [{ label: "All Authors", href: "/authors" }],
     ...staticFooterLinks,
   };
+  const socialProfiles = [
+    { label: "X", shortLabel: "X", href: socialLinks.x },
+    { label: "Instagram", shortLabel: "IG", href: socialLinks.instagram },
+    { label: "TikTok", shortLabel: "TT", href: socialLinks.tiktok },
+    { label: "Facebook", shortLabel: "FB", href: socialLinks.facebook },
+  ].filter((profile): profile is { label: string; shortLabel: string; href: string } => Boolean(profile.href));
 
   return (
     <footer className="border-t border-[#1E1E30]" style={{ background: "var(--surface)" }}>
@@ -55,17 +76,23 @@ export default function Footer({ series = [], authors = [] }: { series?: NavSeri
               Free forever.
             </p>
 
-            <div className="flex items-center gap-3 mt-5">
-              {["X", "in", "o"].map((icon, i) => (
-                <button
-                  key={i}
-                  className="w-8 h-8 rounded-lg border border-[#1E1E30] flex items-center justify-center text-xs text-[#6B6B80] hover:text-[#E8E8F0] hover:border-[#B8FF35] transition-all duration-200"
-                  aria-label={`Social link ${i + 1}`}
-                >
-                  {icon}
-                </button>
-              ))}
-            </div>
+            {socialProfiles.length > 0 && (
+              <div className="flex flex-wrap items-center gap-3 mt-5" aria-label="Search Engine Basics social profiles">
+                {socialProfiles.map((profile) => (
+                  <a
+                    key={profile.label}
+                    href={profile.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-lg border border-[#1E1E30] flex items-center justify-center text-[10px] font-semibold text-[#6B6B80] hover:text-[#E8E8F0] hover:border-[#B8FF35] transition-all duration-200"
+                    aria-label={`Search Engine Basics on ${profile.label}`}
+                    title={profile.label}
+                  >
+                    {profile.shortLabel}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           <nav aria-label="Footer navigation" className="contents">

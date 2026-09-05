@@ -5,9 +5,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/MobileBottomNav";
-import RouteScrollReset from "@/components/RouteScrollReset";
-import RouteTransitionFallback from "@/components/RouteTransitionFallback";
-import AuthorsStrip from "@/components/AuthorsStrip";
+import JsonLd from "@/components/JsonLd";
 import { getAuthors, getSeries, getSiteSettings } from "@/lib/cms";
 import { SITE_URL } from "@/lib/site";
 
@@ -89,6 +87,13 @@ export default async function RootLayout({
     process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
     "vHzrzYvTLVaFa1uW5eOTfAb91sB6jXRJySFCcI_apfc"
   ).trim();
+  const socialLinks = {
+    x: settings.x_link,
+    instagram: settings.instagram_link,
+    tiktok: settings.tiktok_link,
+    facebook: settings.facebook_link,
+  };
+  const sameAs = Object.values(socialLinks).filter((url): url is string => Boolean(url?.trim()));
   const mobileNavSeries = allSeries
     .filter((s) => s.show_in_mobile_nav ?? s.show_in_nav ?? false)
     .sort((a, b) => (a.mobile_nav_order ?? a.nav_order ?? 0) - (b.mobile_nav_order ?? b.nav_order ?? 0))
@@ -103,26 +108,23 @@ export default async function RootLayout({
     <html lang="en" className={`${syne.variable} ${dmSans.variable} ${dmMono.variable}`}>
       <head>
         {verificationKey && <meta name="google-site-verification" content={verificationKey} />}
-        <script
-          id="mathjax-config"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.MathJax = {
-                tex: {
-                  inlineMath: [['\\\\(', '\\\\)'], ['$', '$']],
-                  displayMath: [['\\\\[', '\\\\]'], ['$$', '$$']],
-                  processEscapes: true
-                },
-                options: {
-                  skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-                },
-                startup: { typeset: false }
-              };
-            `,
-          }}
-        />
       </head>
       <body className="antialiased pb-14 md:pb-0">
+        <JsonLd
+          id="site-organization-schema"
+          data={{
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "@id": `${SITE_URL}#organization`,
+            name: settings.brand_name || "Search Engine Basics",
+            url: SITE_URL,
+            logo: {
+              "@type": "ImageObject",
+              url: `${SITE_URL}/icon-512.png`,
+            },
+            ...(sameAs.length > 0 ? { sameAs } : {}),
+          }}
+        />
         {gtmId && (
           <Script id="gtm-script" strategy="lazyOnload">
             {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -142,12 +144,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             />
           </noscript>
         )}
-        <RouteScrollReset />
         <Navbar series={headerNavSeries} />
-        <RouteTransitionFallback />
         {children}
-        <AuthorsStrip authors={authors} />
-        <Footer series={headerNavSeries} authors={authors} />
+        <Footer series={headerNavSeries} authors={authors} socialLinks={socialLinks} />
         <MobileBottomNav series={mobileNavSeries} />
       </body>
     </html>

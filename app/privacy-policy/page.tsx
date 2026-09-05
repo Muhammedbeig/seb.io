@@ -1,5 +1,19 @@
+import type { Metadata } from "next";
 import PageShell from "@/components/PageShell";
 import { getCompanyPage } from "@/lib/cms";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCompanyPage("privacy-policy");
+  const title = page?.meta_title || page?.title || "Privacy Policy | Search Engine Basics";
+  const description = page?.meta_description || page?.excerpt || "Read the Search Engine Basics privacy policy.";
+
+  return {
+    title,
+    description,
+    alternates: { canonical: "/privacy-policy" },
+    openGraph: { title, description, url: "/privacy-policy" },
+  };
+}
 
 export default async function PrivacyPolicyPage() {
   const page = await getCompanyPage("privacy-policy");

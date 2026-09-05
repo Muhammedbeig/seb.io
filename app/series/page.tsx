@@ -8,6 +8,15 @@ export const metadata = {
   title: "SEO Learning Series: Topic Paths on How Search Engines Work",
   description:
     "Explore structured article series on search engine technology. Each series follows a clear topic path — from crawling to ranking — with articles arranged for progressive understanding.",
+  alternates: {
+    canonical: "/series",
+  },
+  openGraph: {
+    title: "SEO Learning Series: Topic Paths on How Search Engines Work",
+    description:
+      "Explore structured article series on search engine technology. Each series follows a clear topic path — from crawling to ranking — with articles arranged for progressive understanding.",
+    url: "/series",
+  },
 };
 
 export default async function SeriesPage() {

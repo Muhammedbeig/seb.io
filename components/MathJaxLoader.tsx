@@ -127,12 +127,29 @@ export default function MathJaxLoader() {
   }, [loaded, pathname]);
 
   return (
-    <Script
-      id="mathjax-script"
-      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
-      strategy="afterInteractive"
-      onLoad={() => setLoaded(true)}
-      onReady={() => setLoaded(true)}
-    />
+    <>
+      <Script id="mathjax-config" strategy="afterInteractive">
+        {`
+          window.MathJax = {
+            tex: {
+              inlineMath: [['\\\\(', '\\\\)'], ['$', '$']],
+              displayMath: [['\\\\[', '\\\\]'], ['$$', '$$']],
+              processEscapes: true
+            },
+            options: {
+              skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: { typeset: false }
+          };
+        `}
+      </Script>
+      <Script
+        id="mathjax-script"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+        strategy="afterInteractive"
+        onLoad={() => setLoaded(true)}
+        onReady={() => setLoaded(true)}
+      />
+    </>
   );
 }
