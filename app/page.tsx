@@ -17,6 +17,7 @@ function HomeStructuredData() {
   const imageUrl = absoluteSiteUrl("/Thumbnail.png");
   const publisher = {
     "@type": "Organization",
+    "@id": `${pageUrl}#organization`,
     name: "Search Engine Basics",
     url: pageUrl,
     logo: {
